@@ -12,6 +12,6 @@ class Permit extends Model
     protected $guarded = ['id'];
 
     public function trekkingRoute(){
-        $this->belongsTo(TrekkingRoute::class);
+        return $this->belongsTo(TrekkingRoute::class);
     }
 }

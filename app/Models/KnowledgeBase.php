@@ -13,6 +13,6 @@ class KnowledgeBase extends Model
     protected $guarded = ['id'];
 
     public function TrekkingRoutes() {
-        return $this->hasMany(TrekkingRoute::class);
+        return $this->belongsTo(TrekkingRoute::class);
     }
 }

@@ -1,6 +1,6 @@
 import AdminLayout from "../../Layouts/AdminLayout";
 
-export default function Dashboard(){
+export default function Dashboard({stats}){
     return (
         <AdminLayout>
             <h1>

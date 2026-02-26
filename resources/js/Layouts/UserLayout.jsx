@@ -1,4 +1,4 @@
-export default function UserLayout(){
+export default function UserLayout({children}){
     return (
         <div>
             <nav style={{ background: '#2d6a4f', padding: '10px 20px', color: 'white', display: 'flex', gap: '20px' }}>
@@ -6,6 +6,9 @@ export default function UserLayout(){
                 <a href="/aichat" style={color='white'}>AI Chat</a>
                 <a href="/trips" style={color='white'}>My Trips</a>
             </nav>
+            <div style={{padding: '20px'}}>
+                {children}
+            </div>
         </div>
     )
 }
