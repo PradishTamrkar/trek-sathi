@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('knowledge_base', function (Blueprint $table) {
+        Schema::create('knowledge_bases', function (Blueprint $table) {
             $table->id();
             $table->foreignId('trekking_route_id')->nullable()->constrained()->nullOnDelete();
             $table->string('title');
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('knowledge_base');
+        Schema::dropIfExists('knowledge_bases');
     }
 };

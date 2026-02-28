@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tea_house', function (Blueprint $table) {
+        Schema::create('tea_houses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('route_days_id')->constrained()->cascadeOnDelete();
             $table->string('house_name');
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tea_house');
+        Schema::dropIfExists('tea_houses');
     }
 };
