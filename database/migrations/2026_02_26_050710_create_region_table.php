@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('region_name');
             $table->text('region_description')->nullable();
-            $table->string('best_session')->nullable();
+            $table->string('best_season')->nullable();
             $table->text('how_to_reach')->nullable();
             $table->string('region_images')->nullable();
             $table->timestamps();

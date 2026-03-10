@@ -27,7 +27,7 @@ const navItems = [
         label: 'Regions',
         icon:<MapIcon/>,
         routeName:'admin.regions',
-        href:'#'
+        href:'/admin/regions'
     },
     {
         label: 'Trekking Routes',
