@@ -14,13 +14,13 @@ use Inertia\Response;
 
 class AuthController extends Controller
 {
-    // ── Admin Login Page ──────────────────────────────────────────────────────
+    //Admin Login Page
     public function adminLoginPage(): Response
     {
         return Inertia::render('Admin/Login');
     }
 
-    // ── Admin Login Handler ───────────────────────────────────────────────────
+    // Admin Login Handle
     public function adminLogin(Request $request): RedirectResponse
     {
         $request->validate([
@@ -42,7 +42,7 @@ class AuthController extends Controller
         return redirect()->route('admin.dashboard');
     }
 
-    // ── User Login Handler (modal POST) ───────────────────────────────────────
+    // User Login Handler (modal POST)
     public function userLogin(Request $request): RedirectResponse
     {
         $request->validate([
@@ -67,7 +67,7 @@ class AuthController extends Controller
         return redirect()->route('home');
     }
 
-    // ── User Register Handler (modal POST) ────────────────────────────────────
+    //User Register Handler (modal POST)
     public function userRegister(Request $request): RedirectResponse
     {
         $request->validate([
@@ -89,7 +89,7 @@ class AuthController extends Controller
         return redirect()->route('home');
     }
 
-    // ── Logout ────────────────────────────────────────────────────────────────
+    //Logout
     public function logout(Request $request): RedirectResponse
     {
         $isAdmin = Auth::check() && Auth::user()->isAdmin();

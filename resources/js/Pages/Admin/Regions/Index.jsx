@@ -120,7 +120,7 @@ function RegionDialog({open, onClose, region=null }){
                     <Button onClick={handleClose} color="inherit" disabled={processing}>
                         Cancel
                     </Button>
-                    <Button type="submit" variant="contained" disabled={processing}>
+                    <Button type="submit" onClick={handleSubmit} variant="contained" disabled={processing}>
                         {processing ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Region'}
                     </Button>
                 </DialogActions>
@@ -129,7 +129,7 @@ function RegionDialog({open, onClose, region=null }){
     );
 }
 
-// ── Delete Confirm Dialog ─────────────────────────────────────────────────────
+//Delete Confirm Dialog
 function DeleteDialog({ open, onClose, region }) {
     const { delete: destroy, processing } = useForm();
 
@@ -164,7 +164,7 @@ function DeleteDialog({ open, onClose, region }) {
     );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+//Main Page
 export default function RegionsIndex({ regions }) {
     const { flash } = usePage().props;
 

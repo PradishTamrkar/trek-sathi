@@ -33,7 +33,7 @@ const navItems = [
         label: 'Trekking Routes',
         icon: <AltRouteIcon/>,
         routeName:'admin.trekkingRoutes',
-        href: '#',
+        href: '/admin/trekkingRoutes',
     },
     {
         label: 'Submissions',

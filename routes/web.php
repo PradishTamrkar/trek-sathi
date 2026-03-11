@@ -4,33 +4,32 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\RegionController;
+use App\Http\Controllers\TrekkingRouteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-//Public
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('welcome');
+// Public landing — renders User/Home (handles guest + auth state itself)
+Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
 
-//(redirect away if already logged in)
+// Redirect away if already logged in
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login',  [AuthController::class, 'adminLoginPage'])->name('admin.login');
     Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
-    Route::post('/login',    [AuthController::class, 'userLogin'])->name('user.login');
-    Route::post('/register', [AuthController::class, 'userRegister'])->name('user.register');
+    Route::post('/login',       [AuthController::class, 'userLogin'])->name('user.login');
+    Route::post('/register',    [AuthController::class, 'userRegister'])->name('user.register');
 });
 
-//Logout
+// Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-//Admin protected
+// Admin protected
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('/regions', RegionController::class)->only(['index','store','update','destroy']);
-    // Route::resource('/trekkingRoutes', TrekkingRouteController::class);
+    Route::resource('/regions',        RegionController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('/trekkingRoutes', TrekkingRouteController::class)->only(['index', 'store', 'update', 'destroy']);
 });
 
-// ── User protected ────────────────────────────────────────────────────────────
+// User protected
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 });
