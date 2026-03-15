@@ -6,6 +6,7 @@ import MapIcon from '@mui/icons-material/Map';
 import AltRouteIcon from '@mui/icons-material/AltRoute';
 import ArticleIcon from '@mui/icons-material/Article';
 import PeopleIcon from '@mui/icons-material/People';
+import HouseIcon from '@mui/icons-material/House';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -39,14 +40,21 @@ const navItems = [
         label: 'Submissions',
         icon: <ArticleIcon/>,
         routeName: 'admin.submissions',
-        href: '#',
+        href: '/admin/submissions',
     },
     {
         label: 'Users',
         icon:<PeopleIcon/>,
         routeName: 'admin.users',
-        href: '#',
+        href: '/admin/users',
     },
+    {
+        label: 'Tea House',
+        icon:<HouseIcon/>,
+        routeName: 'admin.teahouses',
+        href: '/admin/teahouses',
+
+    }
 ];
 
 //Main Layout

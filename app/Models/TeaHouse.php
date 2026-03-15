@@ -11,11 +11,11 @@ class TeaHouse extends Model
 
     protected $guarded = ['id'];
 
-    public function routeDay(){
-        return $this->belongsTo(RouteDay::class);
+    public function trekkingRoute(){
+        return $this->belongsTo(TrekkingRoute::class);
     }
 
-    public function trekkingRoute(){
-        return $this->routeDay->trekkingRoute;
+    public function region(){
+        return $this->belongsTo(Region::class);
     }
 }

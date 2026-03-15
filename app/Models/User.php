@@ -36,11 +36,11 @@ class User extends AuthUser
         return $this->hasMany(SavedTrip::class);
     }
 
-    public function chatHistory(){
-        return $this->hasMany(ChatHistory::class);
-    }
-
     public function communitySubmission(){
         return $this->hasMany(CommunitySubmission::class);
+    }
+
+    public function chatSessions(){
+        return $this->hasMany(ChatSession::class);
     }
 }

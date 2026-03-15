@@ -36,6 +36,6 @@ class TrekkingRoute extends Model
     }
 
     public function teaHouse(){
-        return $this->hasManyThrough(TeaHouse::class ,RouteDay::class);
+        return $this->hasMany(TeaHouse::class);
     }
 }

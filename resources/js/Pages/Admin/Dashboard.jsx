@@ -42,7 +42,7 @@ function StatCard({ label, value, icon, color }) {
     );
 }
 
-// ── Quick action card ─────────────────────────────────────────────────────────
+//Quick action card
 function ActionCard({ emoji, label, desc, href }) {
     return (
         <Card
@@ -73,7 +73,7 @@ function ActionCard({ emoji, label, desc, href }) {
     );
 }
 
-// ── Dashboard page ────────────────────────────────────────────────────────────
+//Dashboard page
 export default function Dashboard({ stats }) {
     return (
         <AdminLayout title="Dashboard">

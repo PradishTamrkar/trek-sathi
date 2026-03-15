@@ -5,6 +5,12 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\AdminTrekkingRouteController;
 use App\Http\Controllers\Admin\AdminRegionController;
+use App\Http\Controllers\Admin\AdminSubmissionController;
+use App\Http\Controllers\Admin\AdminTeaHouseController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\User\UserRegionController;
+use App\Http\Controllers\User\UserTeaHouseController;
+use App\Http\Controllers\User\UserTrekkingRouteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -27,9 +33,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('/regions',AdminRegionController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('/trekkingRoutes',AdminTrekkingRouteController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('/submissions',AdminSubmissionController::class)->only(['index','update','destory']);
+    Route::resource('/users',AdminUserController::class)->only(['index','destroy']);
+    Route::resource('/teahouses',AdminTeaHouseController::class)->only(['index','store','update','destroy']);
 });
 
 // User protected
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    Route::get('/regions/{id}',[UserRegionController::class,'show'])->name('regions.show');
+    Route::get('trekkingRoutes/{id}',[UserTrekkingRouteController::class,'show'])->name('trekkingRoute.show');
+    Route::get('/teaHouses/{id}',[UserTeaHouseController::class,'show'])->name('teaHouse.show');
 });
