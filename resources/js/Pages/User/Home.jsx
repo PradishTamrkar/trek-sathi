@@ -8,7 +8,7 @@ import {
 import TerrainIcon from '@mui/icons-material/Terrain';
 import UserLayout from '../../Layouts/UserLayout';
 
-// ── Auth Modal ────────────────────────────────────────────────────────────────
+//Auth Modal
 function AuthModal({ open, onClose, defaultTab = 0 }) {
     const [tab, setTab] = useState(defaultTab);
 

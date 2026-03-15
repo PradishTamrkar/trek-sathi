@@ -3,8 +3,8 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\HomeController;
-use App\Http\Controllers\RegionController;
-use App\Http\Controllers\TrekkingRouteController;
+use App\Http\Controllers\Admin\AdminTrekkingRouteController;
+use App\Http\Controllers\Admin\AdminRegionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -25,8 +25,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Admin protected
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('/regions',        RegionController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::resource('/trekkingRoutes', TrekkingRouteController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('/regions',AdminRegionController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('/trekkingRoutes',AdminTrekkingRouteController::class)->only(['index', 'store', 'update', 'destroy']);
 });
 
 // User protected

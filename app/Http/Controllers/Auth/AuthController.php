@@ -42,7 +42,7 @@ class AuthController extends Controller
         return redirect()->route('admin.dashboard');
     }
 
-    // User Login Handler (modal POST)
+    // User Login Handler
     public function userLogin(Request $request): RedirectResponse
     {
         $request->validate([
@@ -67,7 +67,7 @@ class AuthController extends Controller
         return redirect()->route('home');
     }
 
-    //User Register Handler (modal POST)
+    //User Register Handler
     public function userRegister(Request $request): RedirectResponse
     {
         $request->validate([

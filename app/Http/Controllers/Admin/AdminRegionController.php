@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Region;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class RegionController extends Controller
+
+class AdminRegionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -36,7 +38,7 @@ class RegionController extends Controller
         $validated=$request->validate([
             'region_name'=>'required|string|max:255',
             'region_description'=>'nullable|string',
-            'best_session'=>'nullable|string|max:255',
+            'best_season'=>'nullable|string|max:255',
             'how_to_reach'=>'nullable|string',
             'region_images'=>'nullable|string',
         ]);
@@ -45,7 +47,7 @@ class RegionController extends Controller
             $region=new Region();
             $region->region_name=$validated['region_name'];
             $region->region_description=$validated['region_description'];
-            $region->best_session=$validated['best_session'];
+            $region->best_season=$validated['best_season'];
             $region->how_to_reach=$validated['how_to_reach'];
             $region->region_images=$validated['region_images'];
             $region->save();
@@ -80,7 +82,7 @@ class RegionController extends Controller
         $validated=$request->validate([
             'region_name'=>'required|string|max:255',
             'region_description'=>'nullable|string',
-            'best_session'=>'nullable|string|max:255',
+            'best_season'=>'nullable|string|max:255',
             'how_to_reach'=>'nullable|string',
             'region_images'=>'nullable|string',
         ]);
@@ -92,7 +94,9 @@ class RegionController extends Controller
                 return back()->with('failed','failed to find the region');
             }
 
-            $region->update();
+            $region->update(
+                $validated
+            );
 
             return back()->with('success','Region successfully updated');
         }catch(\Exception $e){

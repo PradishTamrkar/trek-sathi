@@ -33,7 +33,7 @@ function RegionDialog({open, onClose, region=null }){
     const {data, setData, post, put, processing, errors, reset} = useForm({
         region_name: region?.region_name || '',
         region_description: region?.region_description || '',
-        best_session: region?.best_session || '',
+        best_season: region?.best_season || '',
         how_to_reach: region?.how_to_reach || '',
         region_images: region?.region_images || ''
     })
@@ -46,9 +46,9 @@ function RegionDialog({open, onClose, region=null }){
                 onSuccess: ()=>{reset(); onClose();}
             })
         }else{
-            post(route('admin.regions.store',{
+            post(route('admin.regions.store'),{
                 onSuccess: ()=>{reset(); onClose();}
-            }))
+            })
         }
     }
 
@@ -84,10 +84,10 @@ function RegionDialog({open, onClose, region=null }){
 
                     <TextField
                         label="Best Season"
-                        value={data.best_session}
-                        onChange={e => setData('best_session', e.target.value)}
-                        error={!!errors.best_session}
-                        helperText={errors.best_session}
+                        value={data.best_seasonn}
+                        onChange={e => setData('best_season', e.target.value)}
+                        error={!!errors.best_season}
+                        helperText={errors.best_season}
                         placeholder="e.g. March–May, Sept–Nov"
                     />
 
@@ -120,7 +120,7 @@ function RegionDialog({open, onClose, region=null }){
                     <Button onClick={handleClose} color="inherit" disabled={processing}>
                         Cancel
                     </Button>
-                    <Button type="submit" onClick={handleSubmit} variant="contained" disabled={processing}>
+                    <Button type="submit" variant="contained" disabled={processing}>
                         {processing ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Region'}
                     </Button>
                 </DialogActions>
@@ -271,7 +271,7 @@ export default function RegionsIndex({ regions }) {
 
                                         {/* Season */}
                                         <TableCell>
-                                            <SeasonChip season={region.best_session} />
+                                            <SeasonChip season={region.best_season} />
                                         </TableCell>
 
                                         {/* Description */}
