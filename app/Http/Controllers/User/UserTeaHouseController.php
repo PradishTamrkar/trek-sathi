@@ -11,7 +11,7 @@ class UserTeaHouseController extends Controller
 {
     public function show(string $id)
     {
-        $teaHouse=TeaHouse::with('routeDay.trekkingRoute')->find($id);
+        $teaHouse=TeaHouse::with(['trekkingRoute:id,trekking_route_name','region:id,region_name'])->find($id);
 
         if(!$teaHouse)
         {

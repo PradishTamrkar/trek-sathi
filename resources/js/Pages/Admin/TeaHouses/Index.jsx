@@ -202,7 +202,7 @@ function DeleteDialog({ open, onClose, teaHouse }) {
     );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+//Main page
 export default function TeaHousesIndex({ teaHouses, routes, regions }) {
     const { flash } = usePage().props;
 

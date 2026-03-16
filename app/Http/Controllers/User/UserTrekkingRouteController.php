@@ -13,7 +13,7 @@ class UserTrekkingRouteController extends Controller
     {
         $trekkingRoute = TrekkingRoute::with([
             'regions',
-            'routeDays.teaHouse',
+            'routeDays',
             'permits',
         ])->find($id);
 

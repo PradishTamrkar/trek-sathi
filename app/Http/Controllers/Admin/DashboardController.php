@@ -8,6 +8,7 @@ use App\Models\Region;
 use App\Models\TeaHouse;
 use App\Models\TrekkingRoute;
 use App\Models\User;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -25,6 +26,7 @@ class DashboardController extends Controller
                 'total_users'=>User::where('role','end-user')->count(),
                 'pending_submissions'=>CommunitySubmission::where('status','pending')->count(),
                 'total_tea_houses'=>TeaHouse::count(),
+                'unread_contacts'=>Contact::where('is_read',false)->count(),
             ]
         ]);
     }

@@ -12,6 +12,6 @@ class ChatMessage extends Model
     protected $guarded = ['id'];
 
     public function chatSession(){
-        return $this->belogsTo(ChatSession::class);
+        return $this->belongsTo(ChatSession::class);
     }
 }

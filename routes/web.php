@@ -8,13 +8,14 @@ use App\Http\Controllers\Admin\AdminRegionController;
 use App\Http\Controllers\Admin\AdminSubmissionController;
 use App\Http\Controllers\Admin\AdminTeaHouseController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminContactController;
 use App\Http\Controllers\User\UserRegionController;
 use App\Http\Controllers\User\UserTeaHouseController;
 use App\Http\Controllers\User\UserTrekkingRouteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Public landing — renders User/Home (handles guest + auth state itself)
+// Public landing
 Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
 
 // Redirect away if already logged in
@@ -35,7 +36,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('/trekkingRoutes',AdminTrekkingRouteController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('/submissions',AdminSubmissionController::class)->only(['index','update','destory']);
     Route::resource('/users',AdminUserController::class)->only(['index','destroy']);
-    Route::resource('/teahouses',AdminTeaHouseController::class)->only(['index','store','update','destroy']);
+    Route::resource('/teaHouses',AdminTeaHouseController::class)->only(['index','store','update','destroy']);
+    Route::resource('/contacts',AdminContactController::class);
 });
 
 // User protected

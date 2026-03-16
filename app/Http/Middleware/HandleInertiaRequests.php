@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'unread_contacts'=>$request->user()?->isAdmin()
+            ? Contact::where('is_read',false)->count()
+            : 0
         ];
     }
 }
