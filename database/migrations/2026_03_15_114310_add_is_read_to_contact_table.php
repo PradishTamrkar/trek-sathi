@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('contact', function (Blueprint $table) {
-            $table->boolean('is_read');
+            $table->boolean('is_read')->default(false)->after('message');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('contact', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_read');
         });
     }
 };

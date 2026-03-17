@@ -86,7 +86,7 @@ function LoginModal({ open, onClose, onSwitchToSignUp }) {
     );
 }
 
-// ── Sign Up Modal ─────────────────────────────────────────────────────────────
+// Sign Up Modal
 function SignUpModal({ open, onClose, onSwitchToLogin }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
@@ -182,15 +182,25 @@ function SignUpModal({ open, onClose, onSwitchToLogin }) {
     );
 }
 
-// ── Navbar ────────────────────────────────────────────────────────────────────
-export default function Navbar({ user = null }) {
+// Navbar
+export default function Navbar({ user = null, sectionLinks = [] }) {
     const [loginOpen,   setLoginOpen]   = useState(false);
     const [signUpOpen,  setSignUpOpen]  = useState(false);
     const [anchorEl,    setAnchorEl]    = useState(null);
 
-    const handleLogout = () => {
-        router.post(route('logout'));
+    const handleSectionClick = (e, href)=>{
+        if(href.startsWith('#')){
+            e.preventDefault();
+            const el = document.querySelector(href);
+            if(el){
+                el.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }
+        }
     };
+
+    // const handleLogout = () => {
+    //     router.post(route('logout'));
+    // };
 
     return (
         <>
@@ -199,21 +209,53 @@ export default function Navbar({ user = null }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 px: { xs: 3, md: 6 }, py: 1.75,
                 backdropFilter: 'blur(14px)',
-                bgcolor: 'rgba(10, 25, 15, 0.72)',
+                bgcolor: 'rgba(10, 25, 15, 0.80)',
                 borderBottom: '1px solid rgba(255,255,255,0.07)',
             }}>
                 {/* Logo */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
                     <TerrainIcon sx={{ color: 'secondary.main', fontSize: 22 }} />
-                    <Typography variant="h6" fontWeight={900}
-                        sx={{ color: 'white', fontFamily: 'Georgia, serif', letterSpacing: '-0.01em' }}>
+                    <Typography variant="h6" fontWeight={900} onClick={()=>router.visit(user ? '/home' : '/')}
+                        sx={{ color: 'white', fontFamily: 'Georgia, serif', letterSpacing: '-0.01em', cursor: 'pointer', '&:hover': {opacity:0.85} }}>
                         Trek<Box component="span" sx={{ color: 'secondary.main' }}>Sathi</Box>
                     </Typography>
                 </Box>
 
+                {/*Section Links*/}
+                {sectionLinks.length > 0 && (
+                    <Box sx={{
+                        display: {xs: 'none', md: 'flex'},
+                        alignItems: 'center', gap:0 , mx:'auto',
+                        }}>
+                            {sectionLinks.map(link=>(
+                                <Box
+                                    key={link.label}
+                                    component='a'
+                                    href={link.href}
+                                    onClick={(e)=>handleSectionClick(e, link.href)}
+                                    sx={{
+                                        px: 1.75, py: 0.5,
+                                        fontSize: '0.82rem',
+                                        fontWeight: 500,
+                                        color: 'rgba(255,255,255,0.5)',
+                                        textDecoration: 'none',
+                                        borderRadius: 1.5,
+                                        cursor: 'pointer',
+                                        transition: 'color 0.18s, background 0.18s',
+                                        '&:hover': {
+                                            color: 'white',
+                                            bgcolor: 'rgba(255,255,255,0.07)',
+                                        }
+                                    }}>
+                                        {link.label}
+                                    </Box>
+                            ))}
+                            </Box>
+                )}
+
                 {/* Right side */}
                 {user ? (
-                    // Authenticated — show avatar + user menu
+                    // Authenticated
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)', display: { xs: 'none', sm: 'block' } }}>
                             {user.name}
@@ -238,13 +280,13 @@ export default function Navbar({ user = null }) {
                                 <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
                             </MenuItem>
                             <Divider />
-                            <MenuItem onClick={handleLogout} sx={{ color: 'error.main', gap: 1 }}>
+                            <MenuItem onClick={()=>router.post(route('logout'))} sx={{ color: 'error.main', gap: 1 }}>
                                 <LogoutIcon fontSize="small" /> Sign Out
                             </MenuItem>
                         </Menu>
                     </Box>
                 ) : (
-                    // Guest — Login + Sign Up
+                    // Not Authenticated
                     <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                         <Button
                             onClick={() => setLoginOpen(true)}

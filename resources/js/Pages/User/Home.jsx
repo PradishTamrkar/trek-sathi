@@ -1,26 +1,38 @@
-import { useState, useEffect, useRef } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
-import axios from 'axios';
+import React, { useState, useRef } from 'react';
+import { Head, usePage, router, useForm } from '@inertiajs/react';
 import {
     Box, Typography, Paper, Chip, Button, Divider,
-    IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
-    FormControl, InputLabel, Select, MenuItem, Slider,
-    FormControlLabel, Switch, CircularProgress, Alert,
-    TextField, InputAdornment, useTheme, useMediaQuery,
+    IconButton, Grid, TextField, CircularProgress,
+    InputAdornment, useTheme, useMediaQuery,
 } from '@mui/material';
-import AddIcon          from '@mui/icons-material/Add';
-import HistoryIcon      from '@mui/icons-material/History';
-import BookmarkIcon     from '@mui/icons-material/Bookmark';
-import ChevronLeftIcon  from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import AutoAwesomeIcon  from '@mui/icons-material/AutoAwesome';
-import TuneIcon         from '@mui/icons-material/Tune';
-import CloseIcon        from '@mui/icons-material/Close';
-import SearchIcon       from '@mui/icons-material/Search';
-import AltRouteIcon     from '@mui/icons-material/AltRoute';
-import Navbar           from '../../Components/User/Navbar';
-import Footer           from '../../Components/User/Footer';
+import ChevronLeftIcon       from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon      from '@mui/icons-material/ChevronRight';
+import AutoAwesomeIcon       from '@mui/icons-material/AutoAwesome';
+import TerrainIcon           from '@mui/icons-material/Terrain';
+import GroupsIcon            from '@mui/icons-material/Groups';
+import MapIcon               from '@mui/icons-material/Map';
+import SupportAgentIcon      from '@mui/icons-material/SupportAgent';
+import PersonOutlineIcon     from '@mui/icons-material/PersonOutline';
+import EmailOutlinedIcon     from '@mui/icons-material/EmailOutlined';
+import TopicOutlinedIcon     from '@mui/icons-material/TopicOutlined';
+import MessageOutlinedIcon   from '@mui/icons-material/MessageOutlined';
+import SendIcon              from '@mui/icons-material/Send';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ArrowForwardIcon      from '@mui/icons-material/ArrowForward';
+import Navbar                from '../../Components/User/Navbar';
+import Footer                from '../../Components/User/Footer';
+import UserSidebar, { SIDEBAR_W } from '../../Components/User/UserSidebar';
 
+//Section nav links
+const SECTION_LINKS = [
+    { label: 'Explore',    href: '#explore'    },
+    { label: 'Routes',     href: '#routes'     },
+    { label: 'Tea Houses', href: '#tea-houses' },
+    { label: 'About',      href: '#about'      },
+    { label: 'Contact',    href: '#contact'    },
+];
+
+// ── Dummy data ────────────────────────────────────────────────────────────────
 const DUMMY_REGIONS = [
     { id: 1, region_name: 'Everest Region',   best_season: 'Mar–May, Sep–Nov', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80', region_description: 'Home to the world\'s highest peak and iconic Sherpa culture.' },
     { id: 2, region_name: 'Annapurna Region', best_season: 'Oct–Nov, Mar–Apr', image: 'https://images.unsplash.com/photo-1486911278844-a81c5267e227?w=600&q=80', region_description: 'Diverse landscapes from subtropical forests to high alpine terrain.' },
@@ -47,98 +59,166 @@ const DUMMY_ROUTES = [
 ];
 
 const DUMMY_TEAHOUSES = [
-    { id: 1, house_name: 'Everest View Hotel',   location: 'Namche Bazaar',   altitude: 3880, cost: 15, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80' },
-    { id: 2, house_name: 'Yak & Yeti Lodge',     location: 'Dingboche',       altitude: 4360, cost: 8,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80' },
-    { id: 3, house_name: 'Annapurna Eco Lodge',  location: 'Chomrong',        altitude: 2170, cost: 10, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
-    { id: 4, house_name: 'High Camp Lodge',      location: 'Thorong La',      altitude: 4925, cost: 6,  wifi: false, electricity: false, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80' },
-    { id: 5, house_name: 'Langtang Guest House', location: 'Langtang Village', altitude: 3430, cost: 7,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=80' },
-    { id: 6, house_name: 'Himalayan Sunrise Inn',location: 'Gokyo',           altitude: 4790, cost: 9,  wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80' },
+    { id: 1, house_name: 'Everest View Hotel',    location: 'Namche Bazaar',    altitude: 3880, cost: 15, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80' },
+    { id: 2, house_name: 'Yak & Yeti Lodge',      location: 'Dingboche',        altitude: 4360, cost: 8,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80' },
+    { id: 3, house_name: 'Annapurna Eco Lodge',   location: 'Chomrong',         altitude: 2170, cost: 10, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
+    { id: 4, house_name: 'High Camp Lodge',       location: 'Thorong La',       altitude: 4925, cost: 6,  wifi: false, electricity: false, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80' },
+    { id: 5, house_name: 'Langtang Guest House',  location: 'Langtang Village', altitude: 3430, cost: 7,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=80' },
+    { id: 6, house_name: 'Himalayan Sunrise Inn', location: 'Gokyo',            altitude: 4790, cost: 9,  wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80' },
 ];
 
-const DUMMY_CHAT_SESSIONS = [
-    { session_id: 'abc1', first_message: 'Plan EBC trek for October…', created_at: '2025-03-10' },
-    { session_id: 'abc2', first_message: 'Best tea houses in Namche?',  created_at: '2025-03-08' },
-    { session_id: 'abc3', first_message: 'Annapurna permit cost 2025',  created_at: '2025-03-05' },
-];
+// ── Hero section ──────────────────────────────────────────────────────────────
+function HeroSection({ user }) {
+    const firstName = user?.name?.split(' ')[0] ?? 'Trekker';
 
-const DUMMY_SAVED_TRIPS = [
-    { id: 1, trip_title: 'EBC October 2025',      route_name: 'Everest Base Camp'  },
-    { id: 2, trip_title: 'Annapurna Family Trip',  route_name: 'Annapurna Circuit'  },
-];
-
-const SIDEBAR_W = 260;
-
-function PlanTripModal({ open, onClose }) {
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
-            PaperProps={{ sx: { borderRadius: 3 } }}>
-            <DialogTitle sx={{ pb: 1, pr: 6 }}>
-                <Typography variant="h6" fontWeight={700}>Plan a Trip</Typography>
-                <Typography variant="caption" color="text.secondary">How would you like to start?</Typography>
-                <IconButton onClick={onClose} size="small"
-                    sx={{ position: 'absolute', top: 12, right: 12, color: 'text.secondary' }}>
-                    <CloseIcon fontSize="small" />
-                </IconButton>
-            </DialogTitle>
-            <Divider />
-            <DialogContent sx={{ pt: 2.5, pb: 1 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{
+            position: 'relative',
+            borderRadius: 4,
+            overflow: 'hidden',
+            mb: 6,
+            minHeight: { xs: 280, sm: 320, md: 360 },
+            display: 'flex',
+            alignItems: 'flex-end',
+            background: 'linear-gradient(135deg, #0a1a0e 0%, #1a3a2f 50%, #2d5a3d 100%)',
+        }}>
+            {/* Stars */}
+            <Box sx={{
+                position: 'absolute', inset: 0,
+                backgroundImage: `
+                    radial-gradient(1px 1px at 8%  18%, rgba(255,255,255,.9) 0%, transparent 100%),
+                    radial-gradient(1.5px 1.5px at 25% 9%,  rgba(255,255,255,1)  0%, transparent 100%),
+                    radial-gradient(1px 1px at 55% 13%, rgba(255,255,255,.7) 0%, transparent 100%),
+                    radial-gradient(1px 1px at 78% 22%, rgba(255,255,255,.6) 0%, transparent 100%),
+                    radial-gradient(1px 1px at 42% 35%, rgba(255,255,255,.4) 0%, transparent 100%),
+                    radial-gradient(1.5px 1.5px at 88% 12%, rgba(255,255,255,.8) 0%, transparent 100%),
+                    radial-gradient(1px 1px at 15% 48%, rgba(255,255,255,.3) 0%, transparent 100%)
+                `,
+            }} />
 
-                    {/* Plan with AI */}
-                    <Paper variant="outlined"
-                        onClick={() => { onClose(); router.visit('/chat'); }}
-                        sx={{ p: 2.5, borderRadius: 2.5, cursor: 'pointer', transition: 'all 0.18s',
-                            '&:hover': { borderColor: 'primary.main', bgcolor: 'rgba(46,125,50,0.03)', transform: 'translateY(-1px)' } }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: '#e8f5e9', flexShrink: 0,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <AutoAwesomeIcon sx={{ color: 'primary.main' }} />
-                            </Box>
-                            <Box>
-                                <Typography variant="body1" fontWeight={700}>Plan with AI</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Chat with our AI — get a personalised itinerary in minutes
-                                </Typography>
-                            </Box>
-                        </Box>
-                    </Paper>
+            {/* Mountain SVG — right side decoration */}
+            <Box component="svg" viewBox="0 0 600 300" fill="none"
+                sx={{
+                    position: 'absolute', right: 0, bottom: 0,
+                    height: '100%', width: 'auto',
+                    opacity: { xs: 0.18, md: 0.28 },
+                    pointerEvents: 'none',
+                }}>
+                <path d="M0 300L0 210L80 168L150 198L240 120L330 162L420 58L510 108L560 80L600 95L600 300Z"
+                    fill="#4caf50" opacity=".4" />
+                <path d="M0 300L0 240L100 185L200 220L300 145L390 180L480 95L570 135L600 118L600 300Z"
+                    fill="#2e7d32" opacity=".55" />
+                <path d="M250 300L420 55L590 300Z" fill="#1b5e20" opacity=".5" />
+                <path d="M320 300L420 35L520 300Z" fill="#2e7d32" opacity=".6" />
+                {/* Snow caps */}
+                <path d="M420 35L436 64L450 56L464 74L446 82L428 70L412 81L394 73L408 55L420 64Z"
+                    fill="white" opacity=".7" />
+                <path d="M480 95L491 114L499 109L508 121L497 127L486 119L475 126L464 121L473 109L481 114Z"
+                    fill="white" opacity=".5" />
+            </Box>
 
-                    {/* Plan Yourself */}
-                    <Paper variant="outlined"
-                        onClick={() => {
-                            onClose();
-                            setTimeout(() => document.getElementById('find-your-route')
-                                ?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-                        }}
-                        sx={{ p: 2.5, borderRadius: 2.5, cursor: 'pointer', transition: 'all 0.18s',
-                            '&:hover': { borderColor: 'primary.main', bgcolor: 'rgba(46,125,50,0.03)', transform: 'translateY(-1px)' } }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: '#e3f2fd', flexShrink: 0,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <TuneIcon sx={{ color: '#1565c0' }} />
-                            </Box>
-                            <Box>
-                                <Typography variant="body1" fontWeight={700}>Plan Yourself</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Filter by region, difficulty, duration and more
-                                </Typography>
-                            </Box>
-                        </Box>
-                    </Paper>
+            {/* Gradient overlay — ensures text is readable */}
+            <Box sx={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(90deg, rgba(10,26,14,0.92) 0%, rgba(10,26,14,0.7) 55%, rgba(10,26,14,0.1) 100%)',
+            }} />
+
+            {/* Content */}
+            <Box sx={{ position: 'relative', zIndex: 1, p: { xs: 3, sm: 4, md: 5 }, maxWidth: 560 }}>
+                {/* Greeting badge */}
+                <Box sx={{
+                    display: 'inline-flex', alignItems: 'center', gap: 0.75,
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '100px', px: 1.75, py: 0.5, mb: 2.5,
+                }}>
+                    <Box sx={{
+                        width: 6, height: 6, borderRadius: '50%', bgcolor: 'secondary.main',
+                        animation: 'pulse 2s ease-in-out infinite',
+                        '@keyframes pulse': {
+                            '0%,100%': { opacity: 1, transform: 'scale(1)' },
+                            '50%':     { opacity: 0.5, transform: 'scale(0.85)' },
+                        },
+                    }} />
+                    <Typography variant="caption"
+                        sx={{ color: 'rgba(255,255,255,0.6)', letterSpacing: '0.06em' }}>
+                        Welcome back, {firstName}
+                    </Typography>
                 </Box>
-            </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button onClick={onClose} color="inherit" fullWidth>Cancel</Button>
-            </DialogActions>
-        </Dialog>
+
+                <Typography variant="h3" fontWeight={800}
+                    sx={{
+                        color: 'white', fontFamily: 'Georgia, serif',
+                        lineHeight: 1.12, mb: 1.5,
+                        fontSize: { xs: '1.75rem', sm: '2.2rem', md: '2.6rem' },
+                    }}>
+                    Where will your<br />
+                    <Box component="span" sx={{ color: 'secondary.main' }}>
+                        next trek take you?
+                    </Box>
+                </Typography>
+
+                <Typography variant="body1"
+                    sx={{ color: 'rgba(255,255,255,0.5)', mb: 3.5, lineHeight: 1.8, maxWidth: 380 }}>
+                    Explore Nepal's greatest trails, plan with AI, or browse
+                    routes and tea houses below.
+                </Typography>
+
+                {/* CTAs */}
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        startIcon={<AutoAwesomeIcon />}
+                        onClick={() => router.visit('/chat')}
+                        sx={{ px: 3, py: 1.25, fontSize: '0.9rem' }}
+                    >
+                        Plan with AI
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size="large"
+                        endIcon={<ArrowForwardIcon />}
+                        onClick={() => {
+                            document.querySelector('#explore')
+                                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        sx={{
+                            px: 3, py: 1.25, fontSize: '0.9rem',
+                            color: 'rgba(255,255,255,0.7)',
+                            borderColor: 'rgba(255,255,255,0.25)',
+                            '&:hover': {
+                                borderColor: 'rgba(255,255,255,0.6)',
+                                bgcolor: 'rgba(255,255,255,0.06)',
+                                color: 'white',
+                            },
+                        }}
+                    >
+                        Explore Routes
+                    </Button>
+                </Box>
+
+                {/* Quick stats row */}
+                <Box sx={{ display: 'flex', gap: 3, mt: 4, flexWrap: 'wrap' }}>
+                    {[['50+', 'Routes'], ['15+', 'Regions'], ['500+', 'Tea Houses']].map(([val, label]) => (
+                        <Box key={label}>
+                            <Typography variant="h6" fontWeight={800}
+                                sx={{ color: 'secondary.main', lineHeight: 1 }}>
+                                {val}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)' }}>
+                                {label}
+                            </Typography>
+                        </Box>
+                    ))}
+                </Box>
+            </Box>
+        </Box>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HORIZONTAL SCROLL SECTION
-// 4 cards desktop / 2 tablet / 1 mobile, arrow buttons to page through
-// ─────────────────────────────────────────────────────────────────────────────
-function ScrollSection({ title, subtitle, emoji, children, itemCount }) {
+// ── Scroll section wrapper ────────────────────────────────────────────────────
+function ScrollSection({ id, title, subtitle, emoji, children, itemCount }) {
     const scrollRef = useRef(null);
     const theme     = useTheme();
     const isMd      = useMediaQuery(theme.breakpoints.up('md'));
@@ -152,7 +232,7 @@ function ScrollSection({ title, subtitle, emoji, children, itemCount }) {
     };
 
     return (
-        <Box sx={{ mb: 6 }}>
+        <Box id={id} sx={{ mb: 7, scrollMarginTop: '80px' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Typography sx={{ fontSize: 22, lineHeight: 1 }}>{emoji}</Typography>
@@ -176,11 +256,9 @@ function ScrollSection({ title, subtitle, emoji, children, itemCount }) {
                     </Box>
                 )}
             </Box>
-
             <Box ref={scrollRef} sx={{
                 display: 'flex', gap: 2,
-                overflowX: 'auto', scrollSnapType: 'x mandatory',
-                pb: 1,
+                overflowX: 'auto', scrollSnapType: 'x mandatory', pb: 1,
                 '&::-webkit-scrollbar': { display: 'none' },
                 msOverflowStyle: 'none', scrollbarWidth: 'none',
             }}>
@@ -190,7 +268,6 @@ function ScrollSection({ title, subtitle, emoji, children, itemCount }) {
     );
 }
 
-// Card that snaps and sizes correctly per breakpoint
 function ScrollCard({ children }) {
     return (
         <Box sx={{
@@ -202,9 +279,7 @@ function ScrollCard({ children }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CARDS
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Cards ─────────────────────────────────────────────────────────────────────
 function RegionCard({ region }) {
     return (
         <Paper variant="outlined" onClick={() => router.visit(`/regions/${region.id}`)}
@@ -250,9 +325,7 @@ function RouteCard({ route }) {
                         fontWeight: 700, bgcolor: cfg.bg, color: cfg.color }} />
             </Box>
             <Box sx={{ p: 2 }}>
-                <Typography variant="body2" fontWeight={700} noWrap gutterBottom>
-                    {route.trekking_route_name}
-                </Typography>
+                <Typography variant="body2" fontWeight={700} noWrap gutterBottom>{route.trekking_route_name}</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
                     {route.region_name}
                 </Typography>
@@ -288,14 +361,10 @@ function TeaHouseCard({ house }) {
                     {house.location} · {Number(house.altitude).toLocaleString()}m
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: 1 }}>
-                    {house.wifi && (
-                        <Chip label="WiFi" size="small"
-                            sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600 }} />
-                    )}
-                    {house.electricity && (
-                        <Chip label="Electric" size="small"
-                            sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#fff8e1', color: '#e65100', fontWeight: 600 }} />
-                    )}
+                    {house.wifi && <Chip label="WiFi" size="small"
+                        sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600 }} />}
+                    {house.electricity && <Chip label="Electric" size="small"
+                        sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#fff8e1', color: '#e65100', fontWeight: 600 }} />}
                 </Box>
                 <Typography variant="caption" fontWeight={700} color="primary.main">
                     ${house.cost} / night
@@ -305,270 +374,246 @@ function TeaHouseCard({ house }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SIDEBAR
-// ─────────────────────────────────────────────────────────────────────────────
-function Sidebar({ open, chatSessions, savedTrips, onPlanTrip }) {
+// ── About section ─────────────────────────────────────────────────────────────
+function AboutSection() {
+    const features = [
+        { icon: <AutoAwesomeIcon />, title: 'AI Trip Planner',    desc: 'Chat with our AI to build a personalised day-by-day itinerary in minutes.',      color: '#2e7d32', bg: '#e8f5e9' },
+        { icon: <MapIcon />,         title: '50+ Trekking Routes', desc: 'Comprehensive coverage of Nepal\'s greatest trails with up-to-date info.',       color: '#1565c0', bg: '#e3f2fd' },
+        { icon: <GroupsIcon />,      title: 'Community Reports',   desc: 'Real trail conditions from trekkers who just came back — not outdated guides.',   color: '#e65100', bg: '#fff8e1' },
+        { icon: <SupportAgentIcon />,title: '24/7 Support',        desc: 'Got a question at 2am before your flight? Our AI and team are always on.',       color: '#6a1b9a', bg: '#f3e5f5' },
+    ];
+
     return (
-        <Box sx={{
-            width: open ? SIDEBAR_W : 0, flexShrink: 0, overflow: 'hidden',
-            transition: 'width 0.25s ease', bgcolor: '#1a2e1f',
-            position: 'fixed', top: 64, bottom: 0, left: 0, zIndex: 10,
+        <Box id="about" sx={{
+            scrollMarginTop: '80px', mb: 7,
+            borderRadius: 4, overflow: 'hidden',
+            background: 'linear-gradient(135deg, #0d1f14 0%, #1a3a2f 100%)',
+            p: { xs: 3, md: 5 },
         }}>
-            <Box sx={{ width: SIDEBAR_W, height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-
-                {/* Plan a Trip */}
-                <Box sx={{ p: 2, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    <Button fullWidth variant="contained" startIcon={<AddIcon />} onClick={onPlanTrip}
-                        sx={{ py: 1, justifyContent: 'flex-start', px: 2 }}>
-                        Plan a Trip
-                    </Button>
+            <Box sx={{ mb: 5, display: 'flex', alignItems: 'flex-start', gap: 2,
+                flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
+                <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                        <TerrainIcon sx={{ color: 'secondary.main', fontSize: 16 }} />
+                        <Typography variant="caption"
+                            sx={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                            About TrekSathi
+                        </Typography>
+                    </Box>
+                    <Typography variant="h4" fontWeight={800}
+                        sx={{ color: 'white', fontFamily: 'Georgia, serif', lineHeight: 1.15, mb: 1.5 }}>
+                        Nepal Trekking,<br />
+                        <Box component="span" sx={{ color: 'secondary.main' }}>Made Effortless</Box>
+                    </Typography>
+                    <Typography variant="body1"
+                        sx={{ color: 'rgba(255,255,255,0.5)', maxWidth: 420, lineHeight: 1.8 }}>
+                        TrekSathi was built by Nepal trekkers for Nepal trekkers.
+                        We combine AI technology with deep local knowledge so you spend
+                        less time planning and more time on the trail.
+                    </Typography>
                 </Box>
-
-                <Box sx={{ p: 2, flex: 1 }}>
-                    {/* Chat History */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                        <HistoryIcon sx={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }} />
-                        <Typography variant="caption" fontWeight={700}
-                            sx={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                            Chat History
-                        </Typography>
-                    </Box>
-                    {chatSessions.length === 0
-                        ? <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.22)', pl: 0.5, display: 'block', mb: 2 }}>
-                            No chats yet
-                          </Typography>
-                        : chatSessions.map(s => (
-                            <Box key={s.session_id} onClick={() => router.visit(`/chat/${s.session_id}`)}
-                                sx={{ px: 1.5, py: 0.9, borderRadius: 1.5, mb: 0.5, cursor: 'pointer',
-                                    '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
-                                <Typography variant="body2" noWrap sx={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem' }}>
-                                    {s.first_message}
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.25)' }}>
-                                    {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </Typography>
-                            </Box>
-                        ))
-                    }
-
-                    <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)', my: 2 }} />
-
-                    {/* Saved Trips */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                        <BookmarkIcon sx={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }} />
-                        <Typography variant="caption" fontWeight={700}
-                            sx={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                            Saved Trips
-                        </Typography>
-                    </Box>
-                    {savedTrips.length === 0
-                        ? <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.22)', pl: 0.5 }}>
-                            No saved trips yet
-                          </Typography>
-                        : savedTrips.map(trip => (
-                            <Box key={trip.id} onClick={() => router.visit(`/trips/${trip.id}`)}
-                                sx={{ px: 1.5, py: 0.9, borderRadius: 1.5, mb: 0.5, cursor: 'pointer',
-                                    '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
-                                <Typography variant="body2" noWrap sx={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem' }}>
-                                    {trip.trip_title}
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.25)' }}>
-                                    {trip.route_name}
-                                </Typography>
-                            </Box>
-                        ))
-                    }
+                <Box sx={{ display: 'flex', gap: { xs: 3, md: 4 }, flexWrap: 'wrap', alignSelf: { md: 'center' } }}>
+                    {[['50+', 'Routes'], ['15+', 'Regions'], ['500+', 'Tea Houses'], ['24/7', 'AI']].map(([val, label]) => (
+                        <Box key={label} sx={{ textAlign: 'center' }}>
+                            <Typography variant="h4" fontWeight={800} sx={{ color: 'secondary.main', lineHeight: 1 }}>{val}</Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>{label}</Typography>
+                        </Box>
+                    ))}
                 </Box>
             </Box>
+            <Grid container spacing={2}>
+                {features.map(f => (
+                    <Grid item xs={12} sm={6} md={3} key={f.title}>
+                        <Box sx={{
+                            p: 2.5, borderRadius: 3,
+                            bgcolor: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            height: '100%', transition: 'all 0.2s',
+                            '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.15)' },
+                        }}>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: f.bg, color: f.color,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                                {f.icon}
+                            </Box>
+                            <Typography variant="body2" fontWeight={700} color="white" gutterBottom>{f.title}</Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
+                                {f.desc}
+                            </Typography>
+                        </Box>
+                    </Grid>
+                ))}
+            </Grid>
         </Box>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FIND YOUR ROUTE — debounced filter section at bottom of page
-// ─────────────────────────────────────────────────────────────────────────────
-function FindYourRoute() {
-    const [filters, setFilters] = useState({
-        search: '', region_id: '', difficulty: '',
-        duration_max: 30, altitude_max: 9000, permit: false,
-    });
-    const [results,   setResults]   = useState(DUMMY_ROUTES);
-    const [searching, setSearching] = useState(false);
-    const [touched,   setTouched]   = useState(false);
-    const debounceRef = useRef(null);
+// ── Contact section ───────────────────────────────────────────────────────────
+const QUICK_TOPICS = ['Trek Planning', 'Permit Info', 'Tea House Booking', 'AI Planner Help', 'General Inquiry'];
 
-    const set = (key, val) => {
-        setTouched(true);
-        setFilters(prev => ({ ...prev, [key]: val }));
+function ContactSection() {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        contact_name: '', contact_email: '', topic: '', message: '',
+    });
+    const [sent, setSent] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        post(route('contact.store'), {
+            onSuccess: () => { reset(); setSent(true); },
+        });
     };
 
-    useEffect(() => {
-        if (!touched) return;
-        clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-            setSearching(true);
-            axios.get('/api/routes/filter', {
-                params: {
-                    search:       filters.search       || undefined,
-                    region_id:    filters.region_id    || undefined,
-                    difficulty:   filters.difficulty   || undefined,
-                    duration_max: filters.duration_max,
-                    altitude_max: filters.altitude_max,
-                    permit:       filters.permit ? 1 : undefined,
-                },
-            })
-            .then(res => setResults(res.data))
-            .catch(() => {
-                // API not wired yet — fall back to local dummy filter
-                setResults(DUMMY_ROUTES.filter(r =>
-                    (!filters.search     || r.trekking_route_name.toLowerCase().includes(filters.search.toLowerCase())) &&
-                    (!filters.difficulty || r.difficulty === filters.difficulty) &&
-                    r.duration_days  <= filters.duration_max &&
-                    r.max_altitude   <= filters.altitude_max &&
-                    (!filters.permit || r.permit_required)
-                ));
-            })
-            .finally(() => setSearching(false));
-        }, 500);
-        return () => clearTimeout(debounceRef.current);
-    }, [filters]);
-
     return (
-        <Box id="find-your-route" sx={{ mb: 6, scrollMarginTop: '80px' }}>
+        <Box id="contact" sx={{ scrollMarginTop: '80px', mb: 7 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-                <TuneIcon sx={{ color: 'primary.main' }} />
+                <Typography sx={{ fontSize: 22, lineHeight: 1 }}>✉️</Typography>
                 <Box>
-                    <Typography variant="h6" fontWeight={700}>Find Your Route</Typography>
+                    <Typography variant="h6" fontWeight={700}>Get in Touch</Typography>
                     <Typography variant="caption" color="text.secondary">
-                        Results update as you adjust — 500ms debounced search
+                        Questions about a route, permit, or anything else? We reply fast.
                     </Typography>
                 </Box>
             </Box>
-
-            <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
-
-                {/* Filter panel */}
-                <Paper variant="outlined"
-                    sx={{ p: 2.5, borderRadius: 3, width: { xs: '100%', md: 260 },
-                        flexShrink: 0, alignSelf: 'flex-start',
-                        position: { md: 'sticky' }, top: { md: 80 } }}>
-                    <Typography variant="caption" fontWeight={700} color="text.secondary"
-                        sx={{ textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', mb: 2.5 }}>
-                        Filters
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                        <TextField placeholder="Search routes…" value={filters.search}
-                            onChange={e => set('search', e.target.value)} size="small"
-                            InputProps={{ startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-                                </InputAdornment>
-                            )}} />
-
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Region</InputLabel>
-                            <Select label="Region" value={filters.region_id}
-                                onChange={e => set('region_id', e.target.value)}>
-                                <MenuItem value="">Any Region</MenuItem>
-                                {DUMMY_REGIONS.map(r => (
-                                    <MenuItem key={r.id} value={r.id}>{r.region_name}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Difficulty</InputLabel>
-                            <Select label="Difficulty" value={filters.difficulty}
-                                onChange={e => set('difficulty', e.target.value)}>
-                                <MenuItem value="">Any Difficulty</MenuItem>
-                                {Object.entries(DIFFICULTY_MAP).map(([val, cfg]) => (
-                                    <MenuItem key={val} value={val}>{cfg.label}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <Box>
-                            <Typography variant="body2" fontWeight={500} gutterBottom>
-                                Max Duration: <strong>{filters.duration_max} days</strong>
-                            </Typography>
-                            <Slider value={filters.duration_max} min={1} max={60} step={1} size="small"
-                                onChange={(_, v) => set('duration_max', v)} />
-                        </Box>
-
-                        <Box>
-                            <Typography variant="body2" fontWeight={500} gutterBottom>
-                                Max Altitude: <strong>{filters.altitude_max.toLocaleString()}m</strong>
-                            </Typography>
-                            <Slider value={filters.altitude_max} min={1000} max={9000} step={100} size="small"
-                                onChange={(_, v) => set('altitude_max', v)} />
-                        </Box>
-
-                        <FormControlLabel
-                            control={<Switch checked={filters.permit} size="small" color="primary"
-                                onChange={e => set('permit', e.target.checked)} />}
-                            label={<Typography variant="body2">Permit Required</Typography>}
-                        />
-                    </Box>
-                </Paper>
-
-                {/* Results grid */}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, minHeight: 24 }}>
-                        {searching
-                            ? <><CircularProgress size={14} /><Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>Searching…</Typography></>
-                            : <Typography variant="caption" color="text.secondary">
-                                {results.length} route{results.length !== 1 ? 's' : ''} found
-                              </Typography>
-                        }
-                    </Box>
-
-                    {!searching && results.length === 0 && (
-                        <Alert severity="info" sx={{ borderRadius: 2, mb: 2 }}>
-                            No routes match your filters — try loosening the criteria.
-                        </Alert>
-                    )}
-
-                    <Box sx={{ display: 'grid', gap: 2,
-                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: '1fr 1fr 1fr' } }}>
-                        {results.map(r => <RouteCard key={r.id} route={r} />)}
-                    </Box>
-                </Box>
-            </Box>
+            <Grid container spacing={3} alignItems="flex-start">
+                <Grid item xs={12} md={4}>
+                    <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, bgcolor: '#f9fff9', borderColor: '#c8e6c9' }}>
+                        <Typography variant="subtitle2" fontWeight={700} color="primary.dark" gutterBottom>
+                            🏔️ Quick Answers
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8, mb: 2 }}>
+                            Our AI can instantly answer most trekking questions — permits, altitudes,
+                            best seasons, tea houses, and itineraries.
+                        </Typography>
+                        <Button variant="contained" fullWidth size="small"
+                            startIcon={<AutoAwesomeIcon />}
+                            onClick={() => router.visit('/chat')}>
+                            Ask the AI Instead
+                        </Button>
+                        <Divider sx={{ my: 2 }} />
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.8 }}>
+                            📧 hello@treksathi.com<br />
+                            🕒 We reply within 24 hours<br />
+                            📍 Based in Kathmandu, Nepal
+                        </Typography>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={8}>
+                    <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+                        {sent ? (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                                <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: '#e8f5e9',
+                                    mx: 'auto', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <CheckCircleOutlineIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                                </Box>
+                                <Typography variant="h6" fontWeight={700} gutterBottom>Message Sent!</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    We'll get back to you within 24 hours.
+                                </Typography>
+                                <Button variant="outlined" size="small" onClick={() => setSent(false)}>
+                                    Send Another
+                                </Button>
+                            </Box>
+                        ) : (
+                            <Box component="form" onSubmit={handleSubmit}
+                                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                                    <TextField label="Your Name" value={data.contact_name}
+                                        onChange={e => setData('contact_name', e.target.value)}
+                                        error={!!errors.contact_name} helperText={errors.contact_name}
+                                        required placeholder="e.g. Ram Sharma"
+                                        InputProps={{ startAdornment: (
+                                            <InputAdornment position="start">
+                                                <PersonOutlineIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                            </InputAdornment>
+                                        )}} />
+                                    <TextField label="Email" type="email" value={data.contact_email}
+                                        onChange={e => setData('contact_email', e.target.value)}
+                                        error={!!errors.contact_email} helperText={errors.contact_email}
+                                        required placeholder="you@example.com"
+                                        InputProps={{ startAdornment: (
+                                            <InputAdornment position="start">
+                                                <EmailOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                            </InputAdornment>
+                                        )}} />
+                                </Box>
+                                <Box>
+                                    <TextField label="Topic" value={data.topic}
+                                        onChange={e => setData('topic', e.target.value)}
+                                        error={!!errors.topic} helperText={errors.topic}
+                                        required placeholder="What's this about?"
+                                        InputProps={{ startAdornment: (
+                                            <InputAdornment position="start">
+                                                <TopicOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                            </InputAdornment>
+                                        )}} />
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
+                                        {QUICK_TOPICS.map(t => (
+                                            <Chip key={t} label={t} size="small"
+                                                onClick={() => setData('topic', t)}
+                                                variant={data.topic === t ? 'filled' : 'outlined'}
+                                                sx={{ fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.15s',
+                                                    ...(data.topic === t
+                                                        ? { bgcolor: 'primary.main', color: 'white' }
+                                                        : { '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }
+                                                    )}} />
+                                        ))}
+                                    </Box>
+                                </Box>
+                                <TextField label="Message" value={data.message}
+                                    onChange={e => setData('message', e.target.value)}
+                                    error={!!errors.message}
+                                    helperText={errors.message || `${data.message.length}/2000`}
+                                    required multiline rows={4}
+                                    placeholder="Tell us what you need…"
+                                    inputProps={{ maxLength: 2000 }}
+                                    InputProps={{ startAdornment: (
+                                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                                            <MessageOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                        </InputAdornment>
+                                    )}} />
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Button type="submit" variant="contained" size="large"
+                                        disabled={processing}
+                                        endIcon={processing ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
+                                        sx={{ px: 4 }}>
+                                        {processing ? 'Sending…' : 'Send Message'}
+                                    </Button>
+                                </Box>
+                            </Box>
+                        )}
+                    </Paper>
+                </Grid>
+            </Grid>
         </Box>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN PAGE
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function Home() {
     const { auth }  = usePage().props;
     const user      = auth?.user;
     const theme     = useTheme();
     const isMobile  = useMediaQuery(theme.breakpoints.down('sm'));
-
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [plannerOpen, setPlannerOpen] = useState(false);
+
+    const chatSessions = [];
+    const savedTrips   = [];
 
     return (
         <>
             <Head title="Home — TrekSathi" />
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'grey.50' }}>
-                <Navbar user={user} />
+                <Navbar user={user} sectionLinks={SECTION_LINKS} />
 
                 <Box sx={{ display: 'flex', flex: 1, pt: '64px' }}>
-
-                    {/* Sidebar */}
-                    <Sidebar
+                    <UserSidebar
                         open={!isMobile && sidebarOpen}
-                        chatSessions={DUMMY_CHAT_SESSIONS}
-                        savedTrips={DUMMY_SAVED_TRIPS}
-                        onPlanTrip={() => setPlannerOpen(true)}
+                        chatSessions={chatSessions}
+                        savedTrips={savedTrips}
+                        activePage="home"
                     />
 
-                    {/* Sidebar toggle (desktop only) */}
+                    {/* Sidebar toggle */}
                     <Box sx={{
                         position: 'fixed', top: '50%', zIndex: 11,
                         left: (!isMobile && sidebarOpen) ? SIDEBAR_W : 0,
@@ -592,59 +637,46 @@ export default function Home() {
                         transition: 'margin-left 0.25s ease',
                         p: { xs: 2, sm: 3, md: 4 },
                     }}>
-                        {/* Mobile Plan a Trip */}
-                        <Box sx={{ display: { xs: 'flex', sm: 'none' }, mb: 3 }}>
-                            <Button variant="contained" startIcon={<AddIcon />}
-                                onClick={() => setPlannerOpen(true)}>
-                                Plan a Trip
-                            </Button>
-                        </Box>
-
-                        {/* Welcome */}
-                        {user && (
-                            <Box sx={{ mb: 4 }}>
-                                <Typography variant="h4" fontWeight={700}>
-                                    Welcome back, {user.name.split(' ')[0]} 👋
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                    Discover your next trek or pick up where you left off.
-                                </Typography>
-                            </Box>
-                        )}
+                        {/* ── Hero ── */}
+                        <HeroSection user={user} />
 
                         {/* ── Regions ── */}
-                        <ScrollSection title="Explore Regions" emoji="🗺️"
-                            subtitle="Click a region to see all routes, permits and details"
+                        <ScrollSection id="explore" title="Explore Regions" emoji="🗺️"
+                            subtitle="Click a region to see all routes and details"
                             itemCount={DUMMY_REGIONS.length}>
                             {DUMMY_REGIONS.map(r => <ScrollCard key={r.id}><RegionCard region={r} /></ScrollCard>)}
                         </ScrollSection>
 
-                        <Divider sx={{ mb: 6 }} />
+                        <Divider sx={{ mb: 7 }} />
 
-                        {/* ── Trekking Routes ── */}
-                        <ScrollSection title="Popular Trekking Routes" emoji="🏔️"
+                        {/* ── Routes ── */}
+                        <ScrollSection id="routes" title="Popular Trekking Routes" emoji="🏔️"
                             subtitle="Top routes across Nepal — click for full details"
                             itemCount={DUMMY_ROUTES.length}>
                             {DUMMY_ROUTES.map(r => <ScrollCard key={r.id}><RouteCard route={r} /></ScrollCard>)}
                         </ScrollSection>
 
-                        <Divider sx={{ mb: 6 }} />
+                        <Divider sx={{ mb: 7 }} />
 
                         {/* ── Tea Houses ── */}
-                        <ScrollSection title="Tea Houses" emoji="🏠"
+                        <ScrollSection id="tea-houses" title="Tea Houses" emoji="🏠"
                             subtitle="Accommodation along the trails"
                             itemCount={DUMMY_TEAHOUSES.length}>
                             {DUMMY_TEAHOUSES.map(h => <ScrollCard key={h.id}><TeaHouseCard house={h} /></ScrollCard>)}
                         </ScrollSection>
 
-                        <Divider sx={{ mb: 6 }} />
+                        <Divider sx={{ mb: 7 }} />
 
-                        {/* ── Find Your Route ── */}
-                        <FindYourRoute />
+                        {/* ── About ── */}
+                        <AboutSection />
+
+                        <Divider sx={{ mb: 7 }} />
+
+                        {/* ── Contact ── */}
+                        <ContactSection />
                     </Box>
                 </Box>
 
-                {/* Footer follows content margin */}
                 <Box sx={{
                     ml: (!isMobile && sidebarOpen) ? `${SIDEBAR_W}px` : 0,
                     transition: 'margin-left 0.25s ease',
@@ -652,8 +684,6 @@ export default function Home() {
                     <Footer />
                 </Box>
             </Box>
-
-            <PlanTripModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
         </>
     );
 }

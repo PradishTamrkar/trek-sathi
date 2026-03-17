@@ -15,7 +15,7 @@ use Inertia\Inertia;
 class HomeController extends Controller
 {
     /**
-     * Guest landing — no data needed.
+     * Guest landing
      */
     public function welcome()
     {

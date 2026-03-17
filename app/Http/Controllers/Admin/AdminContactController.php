@@ -13,9 +13,9 @@ class AdminContactController extends Controller
      */
     public function index()
     {
-        Contact::where('is_read','false')->update(['is_read'=>true]);
+        Contact::where('is_read',false)->update(['is_read'=>true]);
 
-        return Inertia::render('Admin/Contact/Index',[
+        return Inertia::render('Admin/Contacts/Index',[
             'contacts'=>Contact::latest()->get(),
         ]);
     }
@@ -31,7 +31,7 @@ class AdminContactController extends Controller
             {
                 return back()->with('failed','Message not found');
             }
-            $contact->destroy();
+            $contact->delete();
             return back()->with('success','Message successfully Deleted');
         }catch(\Exception $e){
             return back()->with('failed','Failed to delete message');

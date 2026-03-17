@@ -12,6 +12,7 @@ import HouseIcon             from '@mui/icons-material/House';
 import ArticleIcon           from '@mui/icons-material/Article';
 import PeopleIcon            from '@mui/icons-material/People';
 import MailIcon              from '@mui/icons-material/Mail';
+import AutoStoriesIcon       from '@mui/icons-material/AutoStories';
 import MenuOpenIcon          from '@mui/icons-material/MenuOpen';
 import MenuIcon              from '@mui/icons-material/Menu';
 import LogoutIcon            from '@mui/icons-material/Logout';
@@ -22,19 +23,20 @@ const DRAWER_FULL = 240;
 const DRAWER_MINI = 64;
 
 const navItems = [
-    { label: 'Dashboard',       icon: <DashboardIcon />, routeName: 'admin.dashboard',      href: '/admin/dashboard'      },
-    { label: 'Regions',         icon: <MapIcon />,       routeName: 'admin.regions',        href: '/admin/regions'        },
-    { label: 'Trekking Routes', icon: <AltRouteIcon />,  routeName: 'admin.trekkingRoutes', href: '/admin/trekkingRoutes' },
-    { label: 'Tea Houses',      icon: <HouseIcon />,     routeName: 'admin.teaHouses',      href: '/admin/teaHouses'      },
-    { label: 'Submissions',     icon: <ArticleIcon />,   routeName: 'admin.submissions',    href: '/admin/submissions'    },
-    { label: 'Messages',        icon: <MailIcon />,      routeName: 'admin.contacts',       href: '/admin/contacts',  badge: true },
-    { label: 'Users',           icon: <PeopleIcon />,    routeName: 'admin.users',          href: '/admin/users'          },
+    { label: 'Dashboard',      icon: <DashboardIcon />,   routeName: 'admin.dashboard',      href: '/admin/dashboard'      },
+    { label: 'Regions',        icon: <MapIcon />,          routeName: 'admin.regions',        href: '/admin/regions'        },
+    { label: 'Trekking Routes',icon: <AltRouteIcon />,     routeName: 'admin.trekkingRoutes', href: '/admin/trekkingRoutes' },
+    { label: 'Tea Houses',     icon: <HouseIcon />,        routeName: 'admin.teaHouses',      href: '/admin/teaHouses'      },
+    { label: 'Submissions',    icon: <ArticleIcon />,      routeName: 'admin.submissions',    href: '/admin/submissions'    },
+    { label: 'Knowledge Base', icon: <AutoStoriesIcon />,  routeName: 'admin.knowledgeBase',  href: '/admin/knowledgeBase'  },
+    { label: 'Users',          icon: <PeopleIcon />,       routeName: 'admin.users',          href: '/admin/users'          },
+    { label: 'Messages',       icon: <MailIcon />,         routeName: 'admin.contacts',       href: '/admin/contacts',  badge: true },
 ];
 
 export default function AdminLayout({ children, title }) {
     const { auth, unread_contacts } = usePage().props;
-    const [collapsed,   setCollapsed]   = useState(false);
-    const [anchorEl,    setAnchorEl]    = useState(null);
+    const [collapsed, setCollapsed] = useState(false);
+    const [anchorEl,  setAnchorEl]  = useState(null);
 
     const drawerWidth = collapsed ? DRAWER_MINI : DRAWER_FULL;
 
@@ -55,6 +57,7 @@ export default function AdminLayout({ children, title }) {
                     border: 'none', boxSizing: 'border-box',
                 },
             }}>
+                {/* Logo */}
                 <Toolbar sx={{
                     px: collapsed ? 1 : 2, minHeight: '64px !important',
                     justifyContent: 'space-between',
@@ -69,7 +72,8 @@ export default function AdminLayout({ children, title }) {
                         </Typography>
                     )}
                     {collapsed && (
-                        <Typography fontWeight={900} sx={{ color: 'secondary.main', fontSize: '1.3rem', mx: 'auto' }}>T</Typography>
+                        <Typography fontWeight={900}
+                            sx={{ color: 'secondary.main', fontSize: '1.3rem', mx: 'auto' }}>T</Typography>
                     )}
                     <IconButton onClick={() => setCollapsed(c => !c)} size="small"
                         sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' } }}>
@@ -77,10 +81,11 @@ export default function AdminLayout({ children, title }) {
                     </IconButton>
                 </Toolbar>
 
+                {/* Nav items */}
                 <List sx={{ px: 1, py: 1.5, flex: 1 }}>
                     {navItems.map(item => {
-                        const active      = isActive(item.routeName);
-                        const badgeCount  = item.badge ? (unread_contacts ?? 0) : 0;
+                        const active     = isActive(item.routeName);
+                        const badgeCount = item.badge ? (unread_contacts ?? 0) : 0;
 
                         return (
                             <Tooltip key={item.routeName} title={collapsed ? item.label : ''} placement="right">
@@ -93,9 +98,12 @@ export default function AdminLayout({ children, title }) {
                                             borderLeft: active ? '3px solid #4caf50' : '3px solid transparent',
                                             '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
                                         }}>
-                                        <ListItemIcon sx={{ minWidth: collapsed ? 0 : 36,
-                                            color: active ? '#4caf50' : 'rgba(255,255,255,0.4)' }}>
-                                            <Badge badgeContent={badgeCount} color="error" max={99}>
+                                        <ListItemIcon sx={{
+                                            minWidth: collapsed ? 0 : 36,
+                                            color: active ? '#4caf50' : 'rgba(255,255,255,0.4)',
+                                        }}>
+                                            <Badge badgeContent={badgeCount} color="error" max={99}
+                                                sx={{ '& .MuiBadge-badge': { fontSize: '0.55rem', minWidth: 16, height: 16 } }}>
                                                 {item.icon}
                                             </Badge>
                                         </ListItemIcon>
@@ -170,14 +178,12 @@ export default function AdminLayout({ children, title }) {
                     <Toolbar sx={{ justifyContent: 'space-between', minHeight: '64px !important' }}>
                         <Typography variant="subtitle1" fontWeight={600}>{title}</Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                            {/* Notification bell — shows unread contact count */}
-                            <Tooltip title={
-                                unread_contacts > 0
-                                    ? `${unread_contacts} unread message${unread_contacts > 1 ? 's' : ''}`
-                                    : 'No new messages'
-                            }>
+                            <Tooltip title={unread_contacts > 0
+                                ? `${unread_contacts} unread message${unread_contacts !== 1 ? 's' : ''}`
+                                : 'No new messages'}>
                                 <IconButton size="small" onClick={() => router.visit('/admin/contacts')}>
-                                    <Badge badgeContent={unread_contacts ?? 0} color="error" max={99}>
+                                    <Badge badgeContent={unread_contacts ?? 0} color="error" max={99}
+                                        sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', minWidth: 16, height: 16 } }}>
                                         <NotificationsNoneIcon fontSize="small" />
                                     </Badge>
                                 </IconButton>
