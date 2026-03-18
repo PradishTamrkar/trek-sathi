@@ -42,8 +42,9 @@ function RegionDialog({open, onClose, region=null }){
         e.preventDefault();
 
         if(isEdit){
-            put(route('admin.regions.update',region.id),{
+            post(route('admin.regions.update',region.id),{
                 forceFormData: true,
+                data: { ...data, _method: 'PUT' },
                 onSuccess: ()=>{reset(); onClose();}
             })
         }else{
@@ -86,7 +87,7 @@ function RegionDialog({open, onClose, region=null }){
 
                     <TextField
                         label="Best Season"
-                        value={data.best_seasonn}
+                        value={data.best_season}
                         onChange={e => setData('best_season', e.target.value)}
                         error={!!errors.best_season}
                         helperText={errors.best_season}

@@ -34,20 +34,20 @@ class AdminRegionController extends Controller
 
         try{
             $region=new Region();
-            $region->region_name=$validated['region_name'];
-            $region->region_description=$validated['region_description'];
-            $region->best_season=$validated['best_season'];
-            $region->how_to_reach=$validated['how_to_reach'];
+            $region->region_name=$validated['region_name'] ?? null;
+            $region->region_description=$validated['region_description'] ?? null;
+            $region->best_season=$validated['best_season'] ?? null;
+            $region->how_to_reach=$validated['how_to_reach'] ?? null;
             if($request->hasFile('region_images')){
-                $validated['region_images']=$this->cloudinary->upload
+                $region->region_images=$this->cloudinary->upload
                 (
                     $request->file('region_images'),
                     'trek-sathi/regions'
                 );
             }else{
-                $validated['region_images']=null;
+                $region->region_image=null;
             }
-            $region->save($validated);
+            $region->save();
 
             return back()->with('success','Region created successfully');
         }catch(\Exception $e){
@@ -77,7 +77,7 @@ class AdminRegionController extends Controller
                 if($region->region_images){
                     $this->cloudinary->delete($region->region_images);
                 }
-                $validated['region_images']=$this->cloudinary->upload(
+                $region->region_image=$this->cloudinary->upload(
                     $request->file('region_images'),
                     'trek-sathi/regions'
                 );
