@@ -35,7 +35,7 @@ function RegionDialog({open, onClose, region=null }){
         region_description: region?.region_description || '',
         best_season: region?.best_season || '',
         how_to_reach: region?.how_to_reach || '',
-        region_images: region?.region_images || null,
+        region_images: null,
     })
 
     const handleSubmit=(e)=>{
@@ -44,7 +44,6 @@ function RegionDialog({open, onClose, region=null }){
         if(isEdit){
             put(route('admin.regions.update',region.id),{
                 forceFormData: true,
-                _method: 'PUT',
                 onSuccess: ()=>{reset(); onClose();}
             })
         }else{

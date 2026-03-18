@@ -38,7 +38,7 @@ class AdminTeaHouseController extends Controller
             'has_wifi'          => 'boolean',
             'trekking_route_id' => 'nullable|exists:trekking_routes,id',
             'region_id'         => 'nullable|exists:regions,id',
-            'tea_house_images'=>'nullable|image|mime:jpeg,png,jpg,webp|max:5120',
+            'tea_house_images'=>'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $validated['has_electricity'] = $validated['has_electricity'] ?? false;
@@ -82,6 +82,7 @@ class AdminTeaHouseController extends Controller
             'has_wifi'          => 'boolean',
             'trekking_route_id' => 'nullable|exists:trekking_routes,id',
             'region_id'         => 'nullable|exists:regions,id',
+            'tea_house_images'=>'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $validated['has_electricity'] = $validated['has_electricity'] ?? false;

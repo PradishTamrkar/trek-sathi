@@ -29,7 +29,7 @@ class AdminRegionController extends Controller
             'region_description'=>'nullable|string',
             'best_season'=>'nullable|string|max:255',
             'how_to_reach'=>'nullable|string',
-            'region_images'=>'nullable|image|mime:jpeg,png,jpg,webp|max:5120',
+            'region_images'=>'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         try{
@@ -47,7 +47,7 @@ class AdminRegionController extends Controller
             }else{
                 $validated['region_images']=null;
             }
-            $region->save();
+            $region->save($validated);
 
             return back()->with('success','Region created successfully');
         }catch(\Exception $e){
@@ -62,7 +62,7 @@ class AdminRegionController extends Controller
             'region_description'=>'nullable|string',
             'best_season'=>'nullable|string|max:255',
             'how_to_reach'=>'nullable|string',
-            'region_images'=>'nullable|image|mime:jpeg,png,jpg,webp|max:5120',
+            'region_images'=>'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         try{

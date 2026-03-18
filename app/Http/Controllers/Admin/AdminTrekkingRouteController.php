@@ -32,7 +32,7 @@ class AdminTrekkingRouteController extends Controller
             'best_season'          => 'required|string|max:255',
             'permit_required'      => 'boolean',
             'trekking_description' => 'nullable|string',
-            'trekking_images'      => 'nullable|image|mime:jpeg,png,jpg,webp|max:5120',
+            'trekking_images'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $validated['permit_required'] = $validated['permit_required'] ?? false;
@@ -74,7 +74,7 @@ class AdminTrekkingRouteController extends Controller
             'best_season'          => 'required|string|max:255',
             'permit_required'      => 'boolean',
             'trekking_description' => 'nullable|string',
-            'trekking_images'      => 'nullable|image|mime:jpeg,png,jpg,webp|max:5120',
+            'trekking_images'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $validated['permit_required'] = $validated['permit_required'] ?? false;
