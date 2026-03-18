@@ -48,13 +48,13 @@ class AdminTrekkingRouteController extends Controller
             $trekkingRoute->permit_required=$validated['permit_required'];
             $trekkingRoute->trekking_description=$validated['trekking_description'];
             if($request->hasFile('trekking_images')){
-                $validated['trekking_images']=$this->cloudinary->upload
+                $trekkingRoute->trekking_images=$this->cloudinary->upload
                 (
                     $request->file('trekking_images'),
                     'trek-sathi/trekkingRoutes'
                 );
             }else{
-                $validated['trekking_images']=null;
+                $trekkingRoute->trekking_images=null;
             }
             $trekkingRoute->save();
             return back()->with('success', 'Trekking Route created successfully');

@@ -45,7 +45,7 @@ class AdminRegionController extends Controller
                     'trek-sathi/regions'
                 );
             }else{
-                $region->region_image=null;
+                $region->region_images=null;
             }
             $region->save();
 
@@ -77,7 +77,7 @@ class AdminRegionController extends Controller
                 if($region->region_images){
                     $this->cloudinary->delete($region->region_images);
                 }
-                $region->region_image=$this->cloudinary->upload(
+                $validated['region_images']=$this->cloudinary->upload(
                     $request->file('region_images'),
                     'trek-sathi/regions'
                 );

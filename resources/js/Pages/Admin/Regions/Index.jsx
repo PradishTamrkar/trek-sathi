@@ -11,7 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import MapIcon from '@mui/icons-material/Map';
 import AdminLayout from '../../../Layouts/AdminLayout';
-import { useForm,usePage,Head } from "@inertiajs/react";
+import { useForm, usePage, Head, router } from "@inertiajs/react";
 
 //season chip colors
 function SeasonChip({season}){
@@ -27,40 +27,57 @@ function SeasonChip({season}){
 }
 
 //create/edit
-function RegionDialog({open, onClose, region=null }){
+function RegionDialog({ open, onClose, region = null }) {
     const isEdit = Boolean(region);
 
-    const {data, setData, post, put, processing, errors, reset} = useForm({
-        region_name: region?.region_name || '',
-        region_description: region?.region_description || '',
-        best_season: region?.best_season || '',
-        how_to_reach: region?.how_to_reach || '',
+    const { data, setData, post, put, processing, errors, reset } = useForm({
+        region_name:region?.region_name || '',
+        region_description:region?.region_description || '',
+        best_season:region?.best_season || '',
+        how_to_reach:region?.how_to_reach || '',
         region_images: null,
-    })
+    });
 
-    const handleSubmit=(e)=>{
-        e.preventDefault();
+   const handleSubmit = (e) => {
+    e.preventDefault();
 
-        if(isEdit){
-            post(route('admin.regions.update',region.id),{
-                forceFormData: true,
-                data: { ...data, _method: 'PUT' },
-                onSuccess: ()=>{reset(); onClose();}
-            })
-        }else{
-            post(route('admin.regions.store'),{
-                forceFormData: true,
-                onSuccess: ()=>{reset(); onClose();}
-            })
+    if (isEdit) {
+        const formData = new FormData();
+
+        formData.append('region_name', data.region_name);
+        formData.append('region_description', data.region_description);
+        formData.append('best_season', data.best_season);
+        formData.append('how_to_reach', data.how_to_reach);
+
+        if (data.region_images) {
+            formData.append('region_images', data.region_images);
         }
-    }
 
-    const handleClose=()=>{ reset(); onClose(); }
+        formData.append('_method', 'PUT');
+
+        router.post(route('admin.regions.update', region.id), formData, {
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
+
+    } else {
+        router.post(route('admin.regions.store'), data, {
+            forceFormData: true,
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
+    }
+};
+
+    const handleClose = () => { reset(); onClose(); };
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth
-            PaperProps={{ sx: { borderRadius: 3 } }}
-        >
+            PaperProps={{ sx: { borderRadius: 3 } }}>
             <DialogTitle sx={{ pb: 1 }}>
                 <Typography variant="h6" fontWeight={700}>
                     {isEdit ? 'Edit Region' : 'Add New Region'}
@@ -84,7 +101,6 @@ function RegionDialog({open, onClose, region=null }){
                         required
                         placeholder="e.g. Everest Region"
                     />
-
                     <TextField
                         label="Best Season"
                         value={data.best_season}
@@ -93,7 +109,6 @@ function RegionDialog({open, onClose, region=null }){
                         helperText={errors.best_season}
                         placeholder="e.g. March–May, Sept–Nov"
                     />
-
                     <TextField
                         label="Region Description"
                         value={data.region_description}
@@ -104,7 +119,6 @@ function RegionDialog({open, onClose, region=null }){
                         rows={3}
                         placeholder="Brief description of this region..."
                     />
-
                     <TextField
                         label="How to Reach"
                         value={data.how_to_reach}
@@ -115,20 +129,24 @@ function RegionDialog({open, onClose, region=null }){
                         rows={2}
                         placeholder="e.g. Fly to Lukla from Kathmandu..."
                     />
-
                     <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{display: 'block', mb: 0.5}}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                             Region Image (JPEG, PNG, WebP — max 5MB)
                         </Typography>
-                        <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" onChange={e=>setData('region_images', e.target.files[0] ?? null)} style={{width: '100%'}} />
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            onChange={e => setData('region_images', e.target.files[0] ?? null)}
+                            style={{ width: '100%' }}
+                        />
                         {errors.region_images && (
                             <Typography variant="caption" color="error">{errors.region_images}</Typography>
                         )}
-                        {/*show current image if editing*/}
                         {isEdit && region?.region_images && !data.region_images && (
                             <Box sx={{ mt: 1 }}>
                                 <Typography variant="caption" color="text.secondary">Current image:</Typography>
-                                <Box component="img" src={region.region_images} alt="Current" sx={{ display: 'block', mt: 0.5, height: 80, borderRadius: 1, objectFit: 'cover' }}/>
+                                <Box component="img" src={region.region_images} alt="Current"
+                                    sx={{ display: 'block', mt: 0.5, height: 80, borderRadius: 1, objectFit: 'cover' }} />
                             </Box>
                         )}
                     </Box>
@@ -137,9 +155,7 @@ function RegionDialog({open, onClose, region=null }){
                 <Divider />
 
                 <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-                    <Button onClick={handleClose} color="inherit" disabled={processing}>
-                        Cancel
-                    </Button>
+                    <Button onClick={handleClose} color="inherit" disabled={processing}>Cancel</Button>
                     <Button type="submit" variant="contained" disabled={processing}>
                         {processing ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Region'}
                     </Button>
@@ -343,11 +359,13 @@ export default function RegionsIndex({ regions }) {
                 onClose={() => setCreateOpen(false)}
             />
             <RegionDialog
+                key={editRegion?.id ?? 'new'}
                 open={Boolean(editRegion)}
                 onClose={() => setEditRegion(null)}
                 region={editRegion}
             />
             <DeleteDialog
+                key={deleteRegion?.id ?? 'del'}
                 open={Boolean(deleteRegion)}
                 onClose={() => setDeleteRegion(null)}
                 region={deleteRegion}

@@ -14,31 +14,54 @@ import HouseIcon  from '@mui/icons-material/House';
 import WifiIcon   from '@mui/icons-material/Wifi';
 import BoltIcon   from '@mui/icons-material/Bolt';
 import AdminLayout from '../../../Layouts/AdminLayout';
-import { useForm, usePage, Head } from '@inertiajs/react';
+import { useForm, usePage, Head, router } from '@inertiajs/react';
 
-// ── Create / Edit dialog ──────────────────────────────────────────────────────
+//Create / Edit dialog
 function TeaHouseDialog({ open, onClose, teaHouse = null, routes, regions }) {
     const isEdit = Boolean(teaHouse);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
-        house_name:         teaHouse?.house_name         ?? '',
-        location:           teaHouse?.location           ?? '',
-        altitude_location:  teaHouse?.altitude_location  ?? '',
-        cost_per_night:     teaHouse?.cost_per_night     ?? '',
-        has_electricity:    teaHouse?.has_electricity     ?? false,
-        has_wifi:           teaHouse?.has_wifi            ?? false,
-        trekking_route_id:  teaHouse?.trekking_route_id  ?? '',
-        region_id:          teaHouse?.region_id           ?? '',
+        house_name: teaHouse?.house_name || '',
+        location: teaHouse?.location || '',
+        altitude_location: teaHouse?.altitude_location || '',
+        cost_per_night: teaHouse?.cost_per_night || '',
+        has_electricity: teaHouse?.has_electricity || false,
+        has_wifi: teaHouse?.has_wifi || false,
+        trekking_route_id: teaHouse?.trekking_route_id || '',
+        region_id: teaHouse?.region_id || '',
+        tea_house_images: null,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            put(route('admin.teaHouses.update', teaHouse.id), {
-                onSuccess: () => { reset(); onClose(); },
+            const formData = new FormData();
+
+            formData.append('house_name',data.house_name);
+            formData.append('location',data.location);
+            formData.append('altitude_location',data.altitude_location);
+            formData.append('cost_per_night',data.cost_per_night);
+            formData.append('has_electricity',data.has_electricity ? 1 : 0);
+            formData.append('has_wifi',data.has_wifi ? 1 : 0);
+            formData.append('trekking_route_id',data.trekking_route_id);
+            formData.append('region_id',data.region_id);
+
+            if(data.tea_house_images){
+                formData.append('tea_house_images', data.tea_house_images);
+            }
+
+            formData.append('_method','PUT');
+
+            router.post(route('admin.teaHouses.update', teaHouse.id), formData, {
+                onSuccess: () => {
+                    reset();
+                    onClose();
+                },
             });
+
         } else {
-            post(route('admin.teaHouses.store'), {
+            router.post(route('admin.teaHouses.store'), data, {
+                forceFormData: true,
                 onSuccess: () => { reset(); onClose(); },
             });
         }
@@ -120,6 +143,28 @@ function TeaHouseDialog({ open, onClose, teaHouse = null, routes, regions }) {
                         />
                     </Box>
 
+                    {/*image upload*/}
+                     <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                            Tea House Image (JPEG, PNG, WebP — max 5MB)
+                        </Typography>
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            onChange={e => setData('tea_house_images', e.target.files[0] ?? null)}
+                            style={{ width: '100%' }}
+                        />
+                        {errors.tea_house_images && (
+                            <Typography variant="caption" color="error">{errors.tea_house_images}</Typography>
+                        )}
+                        {isEdit && teaHouse?.tea_house_images && !data.tea_house_images && (
+                            <Box sx={{ mt: 1 }}>
+                                <Typography variant="caption" color="text.secondary">Current image:</Typography>
+                                <Box component="img" src={teaHouse.tea_house_images} alt="Current"
+                                    sx={{ display: 'block', mt: 0.5, height: 80, borderRadius: 1, objectFit: 'cover' }} />
+                            </Box>
+                        )}
+                    </Box>
                     <Divider>
                         <Typography variant="caption" color="text.disabled">
                             Optional — helps AI suggest this tea house
@@ -170,7 +215,7 @@ function TeaHouseDialog({ open, onClose, teaHouse = null, routes, regions }) {
     );
 }
 
-// ── Delete dialog ─────────────────────────────────────────────────────────────
+//Delete dialog
 function DeleteDialog({ open, onClose, teaHouse }) {
     const { delete: destroy, processing } = useForm();
 
@@ -373,6 +418,7 @@ export default function TeaHousesIndex({ teaHouses, routes, regions }) {
                 regions={regions}
             />
             <TeaHouseDialog
+                key={editHouse?.id ?? 'new'}
                 open={Boolean(editHouse)}
                 onClose={() => setEditHouse(null)}
                 teaHouse={editHouse}
@@ -380,6 +426,7 @@ export default function TeaHousesIndex({ teaHouses, routes, regions }) {
                 regions={regions}
             />
             <DeleteDialog
+            key={deleteHouse?.id ?? 'del'}
                 open={Boolean(deleteHouse)}
                 onClose={() => setDeleteHouse(null)}
                 teaHouse={deleteHouse}

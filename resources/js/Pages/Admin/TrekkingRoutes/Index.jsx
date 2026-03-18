@@ -15,6 +15,7 @@ import TodayIcon    from '@mui/icons-material/Today';        // ← Days button
 import ArticleIcon  from '@mui/icons-material/Article';     // ← Permits button
 import AdminLayout  from '../../../Layouts/AdminLayout';
 import { useForm, usePage, Head, router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
 const DIFFICULTY_MAP = {
     easy:     { label: 'Easy',      bg: '#e8f5e9', color: '#2e7d32' },
@@ -31,29 +32,51 @@ function DifficultyChip({ level }) {
     );
 }
 
-// ── Create / Edit dialog ──────────────────────────────────────────────────────
+//Create / Edit dialog
 function TrekkingRouteDialog({ open, onClose, trekkingRoute = null, regions }) {
     const isEdit = Boolean(trekkingRoute);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
-        region_id:            trekkingRoute?.region_id            ?? '',
-        trekking_route_name:  trekkingRoute?.trekking_route_name  ?? '',
-        difficulty:           trekkingRoute?.difficulty           ?? 'moderate',
-        duration_days:        trekkingRoute?.duration_days        ?? '',
-        max_altitude:         trekkingRoute?.max_altitude         ?? '',
-        best_season:          trekkingRoute?.best_season          ?? '',
-        permit_required:      trekkingRoute?.permit_required      ?? false,
-        trekking_description: trekkingRoute?.trekking_description ?? '',
+        region_id: trekkingRoute?.region_id || '',
+        trekking_route_name: trekkingRoute?.trekking_route_name || '',
+        difficulty: trekkingRoute?.difficulty || 'moderate',
+        duration_days: trekkingRoute?.duration_days || '',
+        max_altitude: trekkingRoute?.max_altitude || '',
+        best_season: trekkingRoute?.best_season || '',
+        permit_required: trekkingRoute?.permit_required || false,
+        trekking_description: trekkingRoute?.trekking_description || '',
+        trekking_images: null,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            put(route('admin.trekkingRoutes.update', trekkingRoute.id), {
-                onSuccess: () => { reset(); onClose(); },
+            const formData = new FormData();
+
+            formData.append('region_id',data.region_id);
+            formData.append('trekking_route_name',data.trekking_route_name);
+            formData.append('difficulty',data.difficulty);
+            formData.append('duration_days',data.duration_days);
+            formData.append('max_altitude',data.max_altitude);
+            formData.append('best_season',data.best_season);
+            formData.append('permit_required',data.permit_required ? 1 : 0);
+            formData.append('trekking_description',data.trekking_description);
+
+            if(data.trekking_images){
+                formData.append('trekking_images',data.trekking_images);
+            }
+
+            formData.append('_method','PUT');
+
+            router.post(route('admin.trekkingRoutes.update',trekkingRoute.id),formData,{
+                onSuccess: () => {
+                    reset();
+                    onClose();
+                },
             });
         } else {
-            post(route('admin.trekkingRoutes.store'), {
+            router.post(route('admin.trekkingRoutes.store'),data, {
+                forceFormData: true,
                 onSuccess: () => { reset(); onClose(); },
             });
         }
@@ -125,6 +148,28 @@ function TrekkingRouteDialog({ open, onClose, trekkingRoute = null, regions }) {
                         error={!!errors.trekking_description} helperText={errors.trekking_description}
                         multiline rows={3} placeholder="Brief description of this trekking adventure..." />
 
+                    <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                            Trekkng Route Image (JPEG, PNG, WebP — max 5MB)
+                        </Typography>
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            onChange={e => setData('trekking_images', e.target.files[0] ?? null)}
+                            style={{ width: '100%' }}
+                        />
+                        {errors.trekking_images && (
+                            <Typography variant="caption" color="error">{errors.trekking_images}</Typography>
+                        )}
+                        {isEdit && trekkingRoute?.trekking_images && !data.trekking_images && (
+                            <Box sx={{ mt: 1 }}>
+                                <Typography variant="caption" color="text.secondary">Current image:</Typography>
+                                <Box component="img" src={trekkingRoute.trekking_images} alt="Current"
+                                    sx={{ display: 'block', mt: 0.5, height: 80, borderRadius: 1, objectFit: 'cover' }} />
+                            </Box>
+                        )}
+                    </Box>
+
                     <FormControlLabel
                         control={
                             <Switch checked={Boolean(data.permit_required)}
@@ -146,7 +191,7 @@ function TrekkingRouteDialog({ open, onClose, trekkingRoute = null, regions }) {
     );
 }
 
-// ── Delete dialog ─────────────────────────────────────────────────────────────
+//Delete dialog
 function DeleteDialog({ open, onClose, trekkingRoute }) {
     const { delete: destroy, processing } = useForm();
 
@@ -179,7 +224,7 @@ function DeleteDialog({ open, onClose, trekkingRoute }) {
     );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+//Main page
 export default function TrekkingRoutesIndex({ trekkingRoutes, regions }) {
     const { flash } = usePage().props;
 
@@ -344,9 +389,9 @@ export default function TrekkingRoutesIndex({ trekkingRoutes, regions }) {
             </Paper>
 
             <TrekkingRouteDialog open={createOpen} onClose={() => setCreateOpen(false)} regions={regions} />
-            <TrekkingRouteDialog open={Boolean(editRoute)} onClose={() => setEditRoute(null)}
+            <TrekkingRouteDialog key={editRoute?.id ?? 'new'} open={Boolean(editRoute)} onClose={() => setEditRoute(null)}
                 trekkingRoute={editRoute} regions={regions} />
-            <DeleteDialog open={Boolean(deleteRoute)} onClose={() => setDeleteRoute(null)} trekkingRoute={deleteRoute} />
+            <DeleteDialog key={deleteRoute?.id ?? 'del'} open={Boolean(deleteRoute)} onClose={() => setDeleteRoute(null)} trekkingRoute={deleteRoute} />
         </AdminLayout>
     );
 }

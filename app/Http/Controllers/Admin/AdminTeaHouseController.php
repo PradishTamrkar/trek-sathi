@@ -55,13 +55,13 @@ class AdminTeaHouseController extends Controller
             $teaHouse->trekking_route_id=$validated['trekking_route_id'];
             $teaHouse->region_id=$validated['region_id'];
             if($request->hasFile('tea_house_images')){
-                $validated['tea_house_images']=$this->cloudinary->upload
+                $teaHouse->tea_house_images=$this->cloudinary->upload
                 (
                     $request->file('tea_house_images'),
                     'trek-sathi/teaHouses'
                 );
             }else{
-                $validated['tea_house_images']=null;
+                $teaHouse->tea_house_images=null;
             }
             $teaHouse->save();
 
