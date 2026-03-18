@@ -159,7 +159,7 @@ export default function RouteDaysIndex({ trekkingRoute, routeDays = []}){
     const [createOpen, setCreateOpen]=useState(false);
     const [editDay,setEditDay]=useState(null);
     const [deleteDay,setDeleteDay]=useState(null);
-    const [snachbar,setSnackbar] = useState(!!flash?.success);
+    const [snackbar,setSnackbar] = useState(!!flash?.success);
     const [errSnackbar,setErrSnackbar] = useState(!!flash?.failed);
 
     const sorted = [...routeDays].sort((a,b)=>a.day_number - b.day_number);

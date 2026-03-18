@@ -13,7 +13,7 @@ class AdminRouteDayController extends Controller
     public function index(string $routeId)
     {
         $trekkingRoute = TrekkingRoute::with([
-            'routeDays'=>fn($q)=>$q->orderBy('dat_number'),
+            'routeDays'=>fn($q)=>$q->orderBy('day_number'),
         ])->find($routeId);
 
         if(!$trekkingRoute)

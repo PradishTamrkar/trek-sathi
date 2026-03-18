@@ -11,6 +11,11 @@ class TeaHouse extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'has_electricity' => 'boolean',
+        'has_wifi'        => 'boolean',
+    ];
+
     public function trekkingRoute(){
         return $this->belongsTo(TrekkingRoute::class);
     }

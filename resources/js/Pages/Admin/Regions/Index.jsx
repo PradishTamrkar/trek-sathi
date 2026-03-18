@@ -35,7 +35,7 @@ function RegionDialog({open, onClose, region=null }){
         region_description: region?.region_description || '',
         best_season: region?.best_season || '',
         how_to_reach: region?.how_to_reach || '',
-        region_images: region?.region_images || ''
+        region_images: region?.region_images || null,
     })
 
     const handleSubmit=(e)=>{
@@ -43,10 +43,13 @@ function RegionDialog({open, onClose, region=null }){
 
         if(isEdit){
             put(route('admin.regions.update',region.id),{
+                forceFormData: true,
+                _method: 'PUT',
                 onSuccess: ()=>{reset(); onClose();}
             })
         }else{
             post(route('admin.regions.store'),{
+                forceFormData: true,
                 onSuccess: ()=>{reset(); onClose();}
             })
         }
@@ -112,6 +115,23 @@ function RegionDialog({open, onClose, region=null }){
                         rows={2}
                         placeholder="e.g. Fly to Lukla from Kathmandu..."
                     />
+
+                    <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{display: 'block', mb: 0.5}}>
+                            Region Image (JPEG, PNG, WebP — max 5MB)
+                        </Typography>
+                        <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" onChange={e=>setData('region_images', e.target.files[0] ?? null)} style={{width: '100%'}} />
+                        {errors.region_images && (
+                            <Typography variant="caption" color="error">{errors.region_images}</Typography>
+                        )}
+                        {/*show current image if editing*/}
+                        {isEdit && region?.region_images && !data.region_images && (
+                            <Box sx={{ mt: 1 }}>
+                                <Typography variant="caption" color="text.secondary">Current image:</Typography>
+                                <Box component="img" src={region.region_images} alt="Current" sx={{ display: 'block', mt: 0.5, height: 80, borderRadius: 1, objectFit: 'cover' }}/>
+                            </Box>
+                        )}
+                    </Box>
                 </DialogContent>
 
                 <Divider />

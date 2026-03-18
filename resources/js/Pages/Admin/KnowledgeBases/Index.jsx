@@ -6,90 +6,112 @@ import {
     DialogContent, DialogActions, Divider, Chip, InputAdornment,
     FormControl, InputLabel, Select, MenuItem, FormHelperText,
 } from '@mui/material';
-import AddIcon    from '@mui/icons-material/Add';
-import EditIcon   from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SearchIcon from '@mui/icons-material/Search';
+import AddIcon         from '@mui/icons-material/Add';
+import EditIcon        from '@mui/icons-material/Edit';
+import DeleteIcon      from '@mui/icons-material/Delete';
+import SearchIcon      from '@mui/icons-material/Search';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import AdminLayout from '../../../Layouts/AdminLayout';
+import AdminLayout     from '../../../Layouts/AdminLayout';
 import { useForm, usePage, Head } from '@inertiajs/react';
-import { ErrorSharp, RestartAlt } from '@mui/icons-material';
-import { searchForWorkspaceRoot } from 'vite';
 
-const CATEGORIES =['General','Safety','Permits','Altitude','Gear','Culture','Food','Weather','Transport'];
+const CATEGORIES = ['General', 'Safety', 'Permits', 'Altitude', 'Gear', 'Culture', 'Food', 'Weather', 'Transport'];
 
-//create dialog
-function EntryDialog({open, onClose, entry=null, routes=[]}){
-    const isEdit=Boolean(entry);
+// ── Create / Edit dialog ──────────────────────────────────────────────────────
+function EntryDialog({ open, onClose, entry = null, routes = [] }) {
+    const isEdit = Boolean(entry);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         trekking_route_id: entry?.trekking_route_id ?? '',
-        title: entry?.title ?? '',
-        content: entry?.content ?? '',
-        category: entry?.category ?? '',
-        source: entry?.source ?? '',
-    })
+        title:             entry?.title             ?? '',
+        content:           entry?.content           ?? '',
+        category:          entry?.category          ?? '',
+        source:            entry?.source            ?? '',
+    });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if(isEdit){
-            put(route('admin.knowledgeBase.update',entry.id),{
-                onSuccess: ()=>{reset(); onClose();},
+        if (isEdit) {
+            put(route('admin.knowledgeBase.update', entry.id), {
+                onSuccess: () => { reset(); onClose(); },
             });
-        }else{
-            post(route('admin.knowledgeBase.store'),{
-                onSuccess: ()=>{reset(); onClose();},
+        } else {
+            post(route('admin.knowledgeBase.store'), {
+                onSuccess: () => { reset(); onClose(); },
             });
         }
-    }
-    const handleClose = ()=>{ reset(); onClose();};
+    };
 
-    return(
-        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth PaperProps={{sx: {borderRadius: 3}}}>
-            <DialogTitle sx={{pb:1}}>
-                <Typography variant='h6' fontWeight={700}>
-                    {isEdit? 'Edit Knowledge Entry' : 'Add Knowledge Entry'}
+    const handleClose = () => { reset(); onClose(); };
+
+    return (
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth
+            PaperProps={{ sx: { borderRadius: 3 } }}>
+            <DialogTitle sx={{ pb: 1 }}>
+                <Typography variant="h6" fontWeight={700}>
+                    {isEdit ? 'Edit Knowledge Entry' : 'Add Knowledge Entry'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                    This content will be injected as context when the AI answers related questions.
                 </Typography>
             </DialogTitle>
             <Divider />
             <Box component="form" onSubmit={handleSubmit}>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2.5, pt: 2.5}}>
+                <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 2.5 }}>
+
                     <TextField
                         label="Title"
                         value={data.title}
-                        onChange={e=>setData('title',e.target.value)}
+                        onChange={e => setData('title', e.target.value)}
                         error={!!errors.title} helperText={errors.title}
                         required autoFocus
-                        placeholder='eg: Altitude Sickness Prevention Tips'
+                        placeholder="e.g. Altitude Sickness Prevention Tips"
                     />
-                    <Box sx={{displau:'flex', gap: 2}}>
-                        {/*Category*/}
-                        <FormControl fullWidth size='small' error={!!errors.category}>
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        {/* FIX: was setData('categgory', ...) — extra 'g' */}
+                        <FormControl fullWidth size="small" error={!!errors.category}>
                             <InputLabel>Category (optional)</InputLabel>
-                            <Select label="Category (optional)" value={data.category} onChange={e=>setData('categgory',e.target.value)}>
+                            <Select label="Category (optional)" value={data.category}
+                                onChange={e => setData('category', e.target.value)}>
                                 <MenuItem value="">None</MenuItem>
-                                {CATEGORIES.map(c=> <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                                {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                             </Select>
                             {errors.category && <FormHelperText>{errors.category}</FormHelperText>}
                         </FormControl>
 
-                        {/*Associated route*/}
-                        <FormControl fullWidth size='small' error={!!errors.trekking_route_id}>
-                            <InputLabel>Associated Route(optional)</InputLabel>
-                            <Select label="Associated Route(optional)" value={data.trekking_route_id} onChange={e=>setData('trekking_route_id',e.target.value)}>
+                        <FormControl fullWidth size="small" error={!!errors.trekking_route_id}>
+                            <InputLabel>Associated Route (optional)</InputLabel>
+                            <Select label="Associated Route (optional)"
+                                value={data.trekking_route_id}
+                                onChange={e => setData('trekking_route_id', e.target.value)}>
                                 <MenuItem value="">All Routes / General</MenuItem>
-                                {routes.map(r=>(
+                                {routes.map(r => (
                                     <MenuItem key={r.id} value={r.id}>{r.trekking_route_name}</MenuItem>
                                 ))}
                             </Select>
                             {errors.trekking_route_id && <FormHelperText>{errors.trekking_route_id}</FormHelperText>}
                         </FormControl>
                     </Box>
-                    <TextField label="Content" value={data.content} onChange={e => setData('content',e.target.value)} error={!!errors.content} helperText={errors.content} required multiline rows={8} placeholder='Write the knowledge content here' />
-                    <TextField label="Source (optional)" value={data.source} onChange={e=>setData('source',e.target.value)} error={!!errors.source} helperText={errors.source} placeholder='eg: Nepal Toursim Board, personal experience' />
+
+                    <TextField
+                        label="Content"
+                        value={data.content}
+                        onChange={e => setData('content', e.target.value)}
+                        error={!!errors.content} helperText={errors.content}
+                        required multiline rows={8}
+                        placeholder="Write the knowledge content here. The AI will use this when answering relevant questions…"
+                    />
+
+                    <TextField
+                        label="Source (optional)"
+                        value={data.source}
+                        onChange={e => setData('source', e.target.value)}
+                        error={!!errors.source} helperText={errors.source}
+                        placeholder="e.g. Nepal Tourism Board, personal experience"
+                    />
                 </DialogContent>
                 <Divider />
-                <DialogActions sx={{ px: 3, py: 2, gap:1}}>
+                <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
                     <Button onClick={handleClose} color="inherit" disabled={processing}>Cancel</Button>
                     <Button type="submit" variant="contained" disabled={processing}>
                         {processing ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Entry'}
@@ -97,21 +119,21 @@ function EntryDialog({open, onClose, entry=null, routes=[]}){
                 </DialogActions>
             </Box>
         </Dialog>
-    )
+    );
 }
 
-//Delete dialog
-function DeleteDialog({open, onClose, entry}){
-    const {delete: destroy, processing } = useForm();
+// ── Delete dialog ─────────────────────────────────────────────────────────────
+function DeleteDialog({ open, onClose, entry }) {
+    const { delete: destroy, processing } = useForm();
 
-    const handleDelete=()=>{
-        destroy(route('admin.knowledgeBase.destroy',entry.id),{
-            onSuccess:()=>onClose(),
+    const handleDelete = () => {
+        destroy(route('admin.knowledgeBase.destroy', entry.id), {
+            onSuccess: () => onClose(),
         });
     };
 
-    return(
-         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
             PaperProps={{ sx: { borderRadius: 3 } }}>
             <DialogTitle>
                 <Typography variant="h6" fontWeight={700}>Delete Entry</Typography>
@@ -134,7 +156,7 @@ function DeleteDialog({open, onClose, entry}){
     );
 }
 
-//Category Chip
+// ── Category chip ─────────────────────────────────────────────────────────────
 const CATEGORY_COLORS = {
     Safety:    { bg: '#fce4ec', color: '#c62828' },
     Permits:   { bg: '#fff3e0', color: '#e65100' },
@@ -143,32 +165,31 @@ const CATEGORY_COLORS = {
     Culture:   { bg: '#e0f2f1', color: '#00695c' },
     Weather:   { bg: '#e8eaf6', color: '#283593' },
     Transport: { bg: '#f9fbe7', color: '#558b2f' },
-    General:   { bg: '#f5f5f5', color: '#555' },
+    General:   { bg: '#f5f5f5', color: '#555'    },
     Food:      { bg: '#fff8e1', color: '#f57f17' },
-}
+};
 
-function CategoryChip({category}){
-    if(!category)
-        return <Typography variant='caption' color="text.disabled">-</Typography>
-
-    const cfg = CATEGORY_COLORS[category]??{bg: '#f5f5f5', color:'#555'};
+function CategoryChip({ category }) {
+    if (!category) return <Typography variant="caption" color="text.disabled">—</Typography>;
+    const cfg = CATEGORY_COLORS[category] ?? { bg: '#f5f5f5', color: '#555' };
     return (
         <Chip label={category} size="small"
             sx={{ fontSize: '0.68rem', height: 20, fontWeight: 600, bgcolor: cfg.bg, color: cfg.color }} />
     );
 }
 
-//Main Page
-export default function KnowledgeBaseIndex({ entries =[], routes =[]}){
-    const { flash }=usePage().props;
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function KnowledgeBaseIndex({ entries = [], routes = [] }) {
+    const { flash } = usePage().props;
 
-    const [search,setSearch] = useState('');
-    const [catFilter,setCatFilter] = useState('');
-    const [createOpen,setCreateOpen] = useState(false);
-    const [editEntry,setEditEntry] = useState(null);
-    const [deleteEntry,setDeleteEntry] = useState(null);
-    const [snachbar,setSnackbar] = useState(!!flash?.success);
-    const [errSnackbar,setErrSnackbar] = useState(!!flash?.failed);
+    const [search,      setSearch]      = useState('');
+    const [catFilter,   setCatFilter]   = useState('');
+    const [createOpen,  setCreateOpen]  = useState(false);
+    const [editEntry,   setEditEntry]   = useState(null);
+    const [deleteEntry, setDeleteEntry] = useState(null);
+    // FIX: was 'snachbar' (typo) — caused snackbar to never open
+    const [snackbar,    setSnackbar]    = useState(!!flash?.success);
+    const [errSnackbar, setErrSnackbar] = useState(!!flash?.failed);
 
     const filtered = entries.filter(e => {
         const matchSearch = e.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -207,7 +228,6 @@ export default function KnowledgeBaseIndex({ entries =[], routes =[]}){
                 </Button>
             </Box>
 
-            {/* Info banner */}
             <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
                 Entries here are injected as context when the AI answers trekking questions.
                 The more detailed and accurate these are, the better the AI performs.
@@ -314,5 +334,5 @@ export default function KnowledgeBaseIndex({ entries =[], routes =[]}){
             <EntryDialog open={Boolean(editEntry)} onClose={() => setEditEntry(null)} entry={editEntry} routes={routes} />
             <DeleteDialog open={Boolean(deleteEntry)} onClose={() => setDeleteEntry(null)} entry={deleteEntry} />
         </AdminLayout>
-    )
+    );
 }
