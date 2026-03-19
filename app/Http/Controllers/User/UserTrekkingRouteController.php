@@ -13,15 +13,19 @@ class UserTrekkingRouteController extends Controller
     {
         $trekkingRoute = TrekkingRoute::with([
             'regions',
-            'routeDays',
+            'routeDays'=>function($q){
+                $q->orderBy('day_number')->with('teaHouses');
+            },
             'permits',
         ])->find($id);
 
         if(!$trekkingRoute)
         {
-            return back()->with('failed','failed to find tthe trekking route');
+            return redirect()->route('home')->with('failed','failed to find tthe trekking route');
         }
 
-        return Inertia::render('User/TrekkingRoutes/Show');
+        return Inertia::render('User/TrekkingRoutes/Show',[
+            'trekkingRoute'=>$trekkingRoute,
+        ]);
     }
 }

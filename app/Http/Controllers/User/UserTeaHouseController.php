@@ -11,15 +11,19 @@ class UserTeaHouseController extends Controller
 {
     public function show(string $id)
     {
-        $teaHouse=TeaHouse::with(['trekkingRoute:id,trekking_route_name','region:id,region_name'])->find($id);
+        $teaHouse=TeaHouse::with([
+            'trekkingRoute'=>function($q){
+                $q->with('regions');
+            },
+        ])->find($id);
 
         if(!$teaHouse)
         {
-            return back()->with('failed','Failed to find the tea house');
+            return redirect()->route('home')->with('failed','Failed to find the tea house');
         }
 
         return Inertia::render('User/TeaHouses/Show',[
-            'TeaHouse'=>$teaHouse
+            'teaHouse'=>$teaHouse,
         ]);
     }
 }

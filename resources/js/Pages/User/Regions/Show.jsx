@@ -1,78 +1,110 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     Box, Typography, Chip, Paper, Button, Divider,
-    Grid,
+    Avatar, Snackbar, Alert,
 } from '@mui/material';
-import ArrowBackIcon    from '@mui/icons-material/ArrowBack';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import AltRouteIcon     from '@mui/icons-material/AltRoute';
-import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
-import Navbar           from '../../../Components/User/Navbar';
-import Footer           from '../../../Components/User/Footer';
-import { usePage }      from '@inertiajs/react';
+import ArrowBackIcon       from '@mui/icons-material/ArrowBack';
+import TerrainIcon         from '@mui/icons-material/Terrain';
+import CalendarMonthIcon   from '@mui/icons-material/CalendarMonth';
+import DirectionsWalkIcon  from '@mui/icons-material/DirectionsWalk';
+import FlightTakeoffIcon   from '@mui/icons-material/FlightTakeoff';
+import ArticleIcon         from '@mui/icons-material/Article';
+import ChevronRightIcon    from '@mui/icons-material/ChevronRight';
+import Navbar              from '../../../Components/User/Navbar';
+import Footer              from '../../../Components/User/Footer';
+import { useState } from 'react';
 
-// ── Dummy fallback (remove once DB has data) ──────────────────────────────────
-const DUMMY = {
-    id: 1,
-    region_name: 'Everest Region',
-    best_season: 'Mar–May, Sep–Nov',
-    region_description: 'The Everest region, also known as the Khumbu, is home to the world\'s highest peak — Mount Everest at 8,849m. The area is renowned for its dramatic landscapes, rich Sherpa culture, ancient Buddhist monasteries, and challenging high-altitude treks. Namche Bazaar serves as the gateway hub, offering acclimatisation stops, gear shops, and a vibrant trekking community.',
-    how_to_reach: 'Fly from Kathmandu to Lukla (35-min flight), then trek to your destination. Alternatively, drive to Salleri and trek north. Lukla flights are weather-dependent — always build buffer days into your schedule.',
-    region_images: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=85',
-    trekking_routes: [
-        { id: 1, trekking_route_name: 'Everest Base Camp', difficulty: 'hard',     duration_days: 14, max_altitude: 5364, permit_required: true,  trekking_images: 'https://images.unsplash.com/photo-1574092526948-a41f4db8f2bf?w=600&q=80' },
-        { id: 4, trekking_route_name: 'Gokyo Lakes Trek',  difficulty: 'hard',     duration_days: 12, max_altitude: 5357, permit_required: true,  trekking_images: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80' },
-        { id: 7, trekking_route_name: 'Three Passes Trek', difficulty: 'hellmode', duration_days: 20, max_altitude: 5545, permit_required: true,  trekking_images: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&q=80' },
-    ],
-};
-
-const DIFFICULTY_MAP = {
+const DIFFICULTY_COLOR = {
     easy:     { label: 'Easy',      bg: '#e8f5e9', color: '#2e7d32' },
     moderate: { label: 'Moderate',  bg: '#fff8e1', color: '#e65100' },
     hard:     { label: 'Hard',      bg: '#fce4ec', color: '#c62828' },
     hellmode: { label: 'Hell Mode', bg: '#1a0000', color: '#ff1744' },
 };
 
-function DifficultyChip({ level }) {
-    const cfg = DIFFICULTY_MAP[level] ?? { label: level, bg: '#f5f5f5', color: '#555' };
+function StatPill({ icon, label }) {
     return (
-        <Chip label={cfg.label} size="small"
-            sx={{ fontSize: '0.65rem', height: 20, fontWeight: 700, bgcolor: cfg.bg, color: cfg.color }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <Box sx={{ color: 'rgba(255,255,255,0.5)', display: 'flex' }}>{icon}</Box>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>{label}</Typography>
+        </Box>
     );
 }
 
 function RouteCard({ route }) {
-    const cfg = DIFFICULTY_MAP[route.difficulty] ?? { label: route.difficulty, bg: '#f5f5f5', color: '#555' };
+    const cfg = DIFFICULTY_COLOR[route.difficulty] ?? { label: route.difficulty, bg: '#f5f5f5', color: '#555' };
+    const permitTotal = route.permits?.reduce((s, p) => s + (Number(p.price_in_usd) || 0), 0) ?? 0;
+
     return (
-        <Paper variant="outlined"
-            onClick={() => router.visit(`/routes/${route.id}`)}
+        <Paper
+            variant="outlined"
+            onClick={() => router.visit(route('trekkingRoute.show', route.id))}
             sx={{
                 borderRadius: 3, overflow: 'hidden', cursor: 'pointer',
-                transition: 'all 0.18s',
-                '&:hover': { borderColor: 'primary.main', transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(46,125,50,0.13)' },
+                transition: 'all 0.2s',
+                '&:hover': { boxShadow: 4, transform: 'translateY(-2px)', borderColor: 'primary.main' },
+            }}
+        >
+            {/* Image */}
+            <Box sx={{
+                height: 160, bgcolor: '#1a2e1f', position: 'relative',
+                backgroundImage: route.trekking_images ? `url(${route.trekking_images})` : 'none',
+                backgroundSize: 'cover', backgroundPosition: 'center',
             }}>
-            <Box sx={{ height: 150, overflow: 'hidden', position: 'relative', bgcolor: 'grey.200' }}>
-                {route.trekking_images && (
-                    <Box component="img" src={route.trekking_images} alt={route.trekking_route_name}
-                        sx={{ width: '100%', height: '100%', objectFit: 'cover',
-                            transition: 'transform 0.35s', '.MuiPaper-root:hover &': { transform: 'scale(1.06)' } }} />
+                {!route.trekking_images && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                        <TerrainIcon sx={{ fontSize: 48, color: 'rgba(255,255,255,0.15)' }} />
+                    </Box>
                 )}
-                <Chip label={cfg.label} size="small"
-                    sx={{ position: 'absolute', top: 8, right: 8, fontSize: '0.62rem', height: 20,
-                        fontWeight: 700, bgcolor: cfg.bg, color: cfg.color }} />
+                <Chip
+                    label={cfg.label}
+                    size="small"
+                    sx={{
+                        position: 'absolute', top: 12, right: 12,
+                        bgcolor: cfg.bg, color: cfg.color, fontWeight: 700, fontSize: '0.68rem',
+                    }}
+                />
             </Box>
-            <Box sx={{ p: 2 }}>
-                <Typography variant="body2" fontWeight={700} noWrap gutterBottom>
+
+            {/* Body */}
+            <Box sx={{ p: 2.5 }}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom noWrap>
                     {route.trekking_route_name}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <Typography variant="caption" fontWeight={600}>{route.duration_days} days</Typography>
-                    <Typography variant="caption" color="text.disabled">·</Typography>
-                    <Typography variant="caption" fontWeight={600}>{Number(route.max_altitude).toLocaleString()}m</Typography>
-                    {route.permit_required && (
-                        <Chip label="Permit" size="small"
-                            sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#fff3e0', color: '#e65100', fontWeight: 600 }} />
+
+                <Box sx={{ display: 'flex', gap: 2, mb: 1.5, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <DirectionsWalkIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
+                        <Typography variant="caption" color="text.secondary">{route.duration_days} days</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <TerrainIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
+                        <Typography variant="caption" color="text.secondary">
+                            {Number(route.max_altitude).toLocaleString()}m
+                        </Typography>
+                    </Box>
+                    {route.best_season && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <CalendarMonthIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
+                            <Typography variant="caption" color="text.secondary">{route.best_season}</Typography>
+                        </Box>
                     )}
+                </Box>
+
+                <Divider sx={{ mb: 1.5 }} />
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <ArticleIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
+                        <Typography variant="caption" color="text.secondary">
+                            {route.route_days_count ?? 0} day stages
+                        </Typography>
+                    </Box>
+                    {permitTotal > 0 && (
+                        <Typography variant="caption" color="primary.main" fontWeight={700}>
+                            Permits ~${permitTotal}
+                        </Typography>
+                    )}
+                    <ChevronRightIcon sx={{ fontSize: 18, color: 'primary.main' }} />
                 </Box>
             </Box>
         </Paper>
@@ -80,126 +112,136 @@ function RouteCard({ route }) {
 }
 
 export default function RegionShow({ region }) {
-    const { auth } = usePage().props;
-    const data = region ?? DUMMY;
+    const { auth, flash } = usePage().props;
+    const [snackbar, setSnackbar] = useState(!!flash?.success || !!flash?.failed);
+    const routes = region.trekking_routes ?? [];
 
     return (
         <>
-            <Head title={`${data.region_name} — TrekSathi`} />
+            <Head title={`${region.region_name} — TrekSathi`} />
+
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'grey.50' }}>
                 <Navbar user={auth?.user} />
 
-                <Box sx={{ pt: '64px' }}>
-                    {/* Hero image */}
-                    <Box sx={{ position: 'relative', height: { xs: 240, sm: 340, md: 420 }, bgcolor: 'grey.300', overflow: 'hidden' }}>
-                        {data.region_images && (
-                            <Box component="img" src={data.region_images} alt={data.region_name}
-                                sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        )}
-                        {/* Dark gradient overlay */}
-                        <Box sx={{ position: 'absolute', inset: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)' }} />
-                        {/* Title on image */}
-                        <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: { xs: 3, md: 5 } }}>
-                            <Button onClick={() => router.visit('/home')}
-                                startIcon={<ArrowBackIcon />}
-                                size="small"
-                                sx={{ color: 'rgba(255,255,255,0.7)', mb: 2, '&:hover': { color: 'white' }, px: 0 }}>
-                                Back to Home
-                            </Button>
-                            <Typography variant="h3" fontWeight={800} sx={{ color: 'white', fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-                                {data.region_name}
+                <Box sx={{ pt: '64px', flex: 1 }}>
+                    {/* Hero */}
+                    <Box sx={{
+                        background: 'linear-gradient(135deg, #0d1f14 0%, #1a3a2f 100%)',
+                        backgroundImage: region.region_images
+                            ? `linear-gradient(to bottom, rgba(10,20,14,0.55) 0%, rgba(10,20,14,0.85) 100%), url(${region.region_images})`
+                            : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        px: { xs: 3, md: 8 }, py: { xs: 5, md: 7 },
+                    }}>
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => router.visit('/home')}
+                            sx={{ color: 'rgba(255,255,255,0.6)', mb: 3, '&:hover': { color: 'white' } }}
+                        >
+                            Back
+                        </Button>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                            <TerrainIcon sx={{ color: 'secondary.main', fontSize: 16 }} />
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                Region
                             </Typography>
-                            {data.best_season && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                                    <CalendarMonthIcon sx={{ fontSize: 15, color: 'secondary.main' }} />
-                                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)' }}>
-                                        Best season: {data.best_season}
-                                    </Typography>
-                                </Box>
+                        </Box>
+
+                        <Typography variant="h3" fontWeight={800} sx={{ color: 'white', fontFamily: 'Georgia, serif', mb: 1 }}>
+                            {region.region_name}
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', gap: 3, mt: 2, flexWrap: 'wrap' }}>
+                            <StatPill icon={<DirectionsWalkIcon sx={{ fontSize: 15 }} />} label={`${routes.length} trekking route${routes.length !== 1 ? 's' : ''}`} />
+                            {region.best_season && (
+                                <StatPill icon={<CalendarMonthIcon sx={{ fontSize: 15 }} />} label={`Best: ${region.best_season}`} />
                             )}
                         </Box>
                     </Box>
 
                     {/* Content */}
                     <Box sx={{ maxWidth: 1100, mx: 'auto', px: { xs: 2, md: 5 }, py: 5 }}>
-                        <Grid container spacing={4}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 5 }}>
 
-                            {/* Left — main info */}
-                            <Grid item xs={12} md={7}>
-                                <Typography variant="h6" fontWeight={700} gutterBottom>About this Region</Typography>
-                                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.85, mb: 4 }}>
-                                    {data.region_description ?? 'No description available.'}
+                            {/* Left */}
+                            <Box>
+                                {/* About */}
+                                {region.region_description && (
+                                    <Box sx={{ mb: 5 }}>
+                                        <Typography variant="h6" fontWeight={700} gutterBottom>About this Region</Typography>
+                                        <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.9 }}>
+                                            {region.region_description}
+                                        </Typography>
+                                    </Box>
+                                )}
+
+                                {/* Routes */}
+                                <Typography variant="h6" fontWeight={700} gutterBottom>
+                                    Trekking Routes ({routes.length})
                                 </Typography>
 
-                                {data.how_to_reach && (
-                                    <>
-                                        <Typography variant="h6" fontWeight={700} gutterBottom>How to Reach</Typography>
-                                        <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.85 }}>
-                                            {data.how_to_reach}
-                                        </Typography>
-                                    </>
+                                {routes.length === 0 ? (
+                                    <Paper variant="outlined" sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
+                                        <TerrainIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                                        <Typography color="text.secondary">No routes added yet for this region.</Typography>
+                                    </Paper>
+                                ) : (
+                                    <Box sx={{
+                                        display: 'grid',
+                                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                                        gap: 2.5,
+                                    }}>
+                                        {routes.map(r => <RouteCard key={r.id} route={r} />)}
+                                    </Box>
                                 )}
-                            </Grid>
+                            </Box>
 
-                            {/* Right — quick facts */}
-                            <Grid item xs={12} md={5}>
+                            {/* Right: sidebar info */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                 <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
-                                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>Quick Facts</Typography>
+                                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>Quick Info</Typography>
                                     <Divider sx={{ mb: 2 }} />
-
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        {data.best_season && (
-                                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                                                <CalendarMonthIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.2 }} />
-                                                <Box>
-                                                    <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>Best Season</Typography>
-                                                    <Typography variant="body2" fontWeight={600}>{data.best_season}</Typography>
-                                                </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                        {region.best_season && (
+                                            <Box>
+                                                <Typography variant="caption" color="text.disabled">Best Season</Typography>
+                                                <Typography variant="body2" fontWeight={600}>{region.best_season}</Typography>
                                             </Box>
                                         )}
-                                        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                                            <AltRouteIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.2 }} />
-                                            <Box>
-                                                <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>Trekking Routes</Typography>
-                                                <Typography variant="body2" fontWeight={600}>{data.trekking_routes?.length ?? 0} routes</Typography>
-                                            </Box>
+                                        <Box>
+                                            <Typography variant="caption" color="text.disabled">Total Routes</Typography>
+                                            <Typography variant="body2" fontWeight={600}>{routes.length}</Typography>
                                         </Box>
                                     </Box>
-
-                                    <Button variant="contained" fullWidth sx={{ mt: 3 }}
-                                        startIcon={<DirectionsWalkIcon />}
-                                        onClick={() => {
-                                            router.visit('/home');
-                                            setTimeout(() => document.getElementById('find-your-route')
-                                                ?.scrollIntoView({ behavior: 'smooth' }), 300);
-                                        }}>
-                                        Plan a Trek Here
-                                    </Button>
                                 </Paper>
-                            </Grid>
-                        </Grid>
 
-                        {/* Routes in this region */}
-                        {data.trekking_routes?.length > 0 && (
-                            <Box sx={{ mt: 6 }}>
-                                <Typography variant="h6" fontWeight={700} sx={{ mb: 3 }}>
-                                    Trekking Routes in {data.region_name}
-                                </Typography>
-                                <Grid container spacing={2}>
-                                    {data.trekking_routes.map(r => (
-                                        <Grid item xs={12} sm={6} md={4} key={r.id}>
-                                            <RouteCard route={r} />
-                                        </Grid>
-                                    ))}
-                                </Grid>
+                                {region.how_to_reach && (
+                                    <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                                            <FlightTakeoffIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                                            <Typography variant="subtitle2" fontWeight={700}>How to Reach</Typography>
+                                        </Box>
+                                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                                            {region.how_to_reach}
+                                        </Typography>
+                                    </Paper>
+                                )}
                             </Box>
-                        )}
+                        </Box>
                     </Box>
                 </Box>
 
                 <Footer />
             </Box>
+
+            <Snackbar open={snackbar} autoHideDuration={3000} onClose={() => setSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert severity={flash?.failed ? 'error' : 'success'} onClose={() => setSnackbar(false)} sx={{ borderRadius: 2 }}>
+                    {flash?.success ?? flash?.failed}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

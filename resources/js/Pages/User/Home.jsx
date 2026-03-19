@@ -25,22 +25,23 @@ import UserSidebar, { SIDEBAR_W } from '../../Components/User/UserSidebar';
 
 //Section nav links
 const SECTION_LINKS = [
-    { label: 'Explore',    href: '#explore'    },
-    { label: 'Routes',     href: '#routes'     },
+    { label: 'Explore', href: '#explore' },
+    { label: 'Routes', href: '#routes' },
     { label: 'Tea Houses', href: '#tea-houses' },
-    { label: 'About',      href: '#about'      },
-    { label: 'Contact',    href: '#contact'    },
+    { label: 'Community', href: '/community' },
+    { label: 'About', href: '#about' },
+    { label: 'Contact', href: '#contact' },
 ];
 
-// ── Dummy data ────────────────────────────────────────────────────────────────
-const DUMMY_REGIONS = [
-    { id: 1, region_name: 'Everest Region',   best_season: 'Mar–May, Sep–Nov', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80', region_description: 'Home to the world\'s highest peak and iconic Sherpa culture.' },
-    { id: 2, region_name: 'Annapurna Region', best_season: 'Oct–Nov, Mar–Apr', image: 'https://images.unsplash.com/photo-1486911278844-a81c5267e227?w=600&q=80', region_description: 'Diverse landscapes from subtropical forests to high alpine terrain.' },
-    { id: 3, region_name: 'Langtang Region',  best_season: 'Mar–May, Oct–Dec', image: 'https://images.unsplash.com/photo-1585409677983-0f6c41ca9c3b?w=600&q=80', region_description: 'The valley of glaciers — close to Kathmandu yet wild and remote.' },
-    { id: 4, region_name: 'Manaslu Region',   best_season: 'Sep–Nov',          image: 'https://images.unsplash.com/photo-1580639129040-444d7f245427?w=600&q=80', region_description: 'A restricted circuit trek around the world\'s eighth highest peak.' },
-    { id: 5, region_name: 'Mustang Region',   best_season: 'May–Oct',          image: 'https://images.unsplash.com/photo-1516132006923-6cf348e5dee2?w=600&q=80', region_description: 'Ancient Tibetan kingdom with dramatic desert landscapes.' },
-    { id: 6, region_name: 'Kanchenjunga',     best_season: 'Apr–May, Oct–Nov', image: 'https://images.unsplash.com/photo-1550093573-23ae25d44abe?w=600&q=80', region_description: 'Remote wilderness near the third highest mountain on Earth.' },
-];
+// Dummy data
+// const DUMMY_REGIONS = [
+//     { id: 1, region_name: 'Everest Region',   best_season: 'Mar–May, Sep–Nov', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80', region_description: 'Home to the world\'s highest peak and iconic Sherpa culture.' },
+//     { id: 2, region_name: 'Annapurna Region', best_season: 'Oct–Nov, Mar–Apr', image: 'https://images.unsplash.com/photo-1486911278844-a81c5267e227?w=600&q=80', region_description: 'Diverse landscapes from subtropical forests to high alpine terrain.' },
+//     { id: 3, region_name: 'Langtang Region',  best_season: 'Mar–May, Oct–Dec', image: 'https://images.unsplash.com/photo-1585409677983-0f6c41ca9c3b?w=600&q=80', region_description: 'The valley of glaciers — close to Kathmandu yet wild and remote.' },
+//     { id: 4, region_name: 'Manaslu Region',   best_season: 'Sep–Nov',          image: 'https://images.unsplash.com/photo-1580639129040-444d7f245427?w=600&q=80', region_description: 'A restricted circuit trek around the world\'s eighth highest peak.' },
+//     { id: 5, region_name: 'Mustang Region',   best_season: 'May–Oct',          image: 'https://images.unsplash.com/photo-1516132006923-6cf348e5dee2?w=600&q=80', region_description: 'Ancient Tibetan kingdom with dramatic desert landscapes.' },
+//     { id: 6, region_name: 'Kanchenjunga',     best_season: 'Apr–May, Oct–Nov', image: 'https://images.unsplash.com/photo-1550093573-23ae25d44abe?w=600&q=80', region_description: 'Remote wilderness near the third highest mountain on Earth.' },
+// ];
 
 const DIFFICULTY_MAP = {
     easy:     { label: 'Easy',      bg: '#e8f5e9', color: '#2e7d32' },
@@ -49,25 +50,25 @@ const DIFFICULTY_MAP = {
     hellmode: { label: 'Hell Mode', bg: '#1a0000', color: '#ff1744' },
 };
 
-const DUMMY_ROUTES = [
-    { id: 1, trekking_route_name: 'Everest Base Camp',    difficulty: 'hard',     duration_days: 14, max_altitude: 5364, region_name: 'Everest',   permit_required: true,  image: 'https://images.unsplash.com/photo-1574092526948-a41f4db8f2bf?w=600&q=80' },
-    { id: 2, trekking_route_name: 'Annapurna Circuit',    difficulty: 'moderate', duration_days: 21, max_altitude: 5416, region_name: 'Annapurna', permit_required: true,  image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80' },
-    { id: 3, trekking_route_name: 'Langtang Valley Trek', difficulty: 'moderate', duration_days: 7,  max_altitude: 3800, region_name: 'Langtang',  permit_required: false, image: 'https://images.unsplash.com/photo-1543051932-6ef9fecfbe70?w=600&q=80' },
-    { id: 4, trekking_route_name: 'Gokyo Lakes Trek',     difficulty: 'hard',     duration_days: 12, max_altitude: 5357, region_name: 'Everest',   permit_required: true,  image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80' },
-    { id: 5, trekking_route_name: 'Poon Hill Trek',       difficulty: 'easy',     duration_days: 4,  max_altitude: 3210, region_name: 'Annapurna', permit_required: false, image: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&q=80' },
-    { id: 6, trekking_route_name: 'Manaslu Circuit',      difficulty: 'hard',     duration_days: 16, max_altitude: 5106, region_name: 'Manaslu',   permit_required: true,  image: 'https://images.unsplash.com/photo-1580639129040-444d7f245427?w=600&q=80' },
-];
+// const DUMMY_ROUTES = [
+//     { id: 1, trekking_route_name: 'Everest Base Camp',    difficulty: 'hard',     duration_days: 14, max_altitude: 5364, region_name: 'Everest',   permit_required: true,  image: 'https://images.unsplash.com/photo-1574092526948-a41f4db8f2bf?w=600&q=80' },
+//     { id: 2, trekking_route_name: 'Annapurna Circuit',    difficulty: 'moderate', duration_days: 21, max_altitude: 5416, region_name: 'Annapurna', permit_required: true,  image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80' },
+//     { id: 3, trekking_route_name: 'Langtang Valley Trek', difficulty: 'moderate', duration_days: 7,  max_altitude: 3800, region_name: 'Langtang',  permit_required: false, image: 'https://images.unsplash.com/photo-1543051932-6ef9fecfbe70?w=600&q=80' },
+//     { id: 4, trekking_route_name: 'Gokyo Lakes Trek',     difficulty: 'hard',     duration_days: 12, max_altitude: 5357, region_name: 'Everest',   permit_required: true,  image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80' },
+//     { id: 5, trekking_route_name: 'Poon Hill Trek',       difficulty: 'easy',     duration_days: 4,  max_altitude: 3210, region_name: 'Annapurna', permit_required: false, image: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&q=80' },
+//     { id: 6, trekking_route_name: 'Manaslu Circuit',      difficulty: 'hard',     duration_days: 16, max_altitude: 5106, region_name: 'Manaslu',   permit_required: true,  image: 'https://images.unsplash.com/photo-1580639129040-444d7f245427?w=600&q=80' },
+// ];
 
-const DUMMY_TEAHOUSES = [
-    { id: 1, house_name: 'Everest View Hotel',    location: 'Namche Bazaar',    altitude: 3880, cost: 15, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80' },
-    { id: 2, house_name: 'Yak & Yeti Lodge',      location: 'Dingboche',        altitude: 4360, cost: 8,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80' },
-    { id: 3, house_name: 'Annapurna Eco Lodge',   location: 'Chomrong',         altitude: 2170, cost: 10, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
-    { id: 4, house_name: 'High Camp Lodge',       location: 'Thorong La',       altitude: 4925, cost: 6,  wifi: false, electricity: false, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80' },
-    { id: 5, house_name: 'Langtang Guest House',  location: 'Langtang Village', altitude: 3430, cost: 7,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=80' },
-    { id: 6, house_name: 'Himalayan Sunrise Inn', location: 'Gokyo',            altitude: 4790, cost: 9,  wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80' },
-];
+// const DUMMY_TEAHOUSES = [
+//     { id: 1, house_name: 'Everest View Hotel',    location: 'Namche Bazaar',    altitude: 3880, cost: 15, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80' },
+//     { id: 2, house_name: 'Yak & Yeti Lodge',      location: 'Dingboche',        altitude: 4360, cost: 8,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80' },
+//     { id: 3, house_name: 'Annapurna Eco Lodge',   location: 'Chomrong',         altitude: 2170, cost: 10, wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' },
+//     { id: 4, house_name: 'High Camp Lodge',       location: 'Thorong La',       altitude: 4925, cost: 6,  wifi: false, electricity: false, image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80' },
+//     { id: 5, house_name: 'Langtang Guest House',  location: 'Langtang Village', altitude: 3430, cost: 7,  wifi: false, electricity: true,  image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=80' },
+//     { id: 6, house_name: 'Himalayan Sunrise Inn', location: 'Gokyo',            altitude: 4790, cost: 9,  wifi: true,  electricity: true,  image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80' },
+// ];
 
-// ── Hero section ──────────────────────────────────────────────────────────────
+//Hero section
 function HeroSection({ user }) {
     const firstName = user?.name?.split(' ')[0] ?? 'Trekker';
 
@@ -217,7 +218,7 @@ function HeroSection({ user }) {
     );
 }
 
-// ── Scroll section wrapper ────────────────────────────────────────────────────
+//Scroll section wrapper
 function ScrollSection({ id, title, subtitle, emoji, children, itemCount }) {
     const scrollRef = useRef(null);
     const theme     = useTheme();
@@ -279,45 +280,45 @@ function ScrollCard({ children }) {
     );
 }
 
-// ── Cards ─────────────────────────────────────────────────────────────────────
-function RegionCard({ region }) {
+//Cards
+function RegionCard({ regions }) {
     return (
-        <Paper variant="outlined" onClick={() => router.visit(`/regions/${region.id}`)}
+        <Paper variant="outlined" onClick={() => router.visit(`/regions/${regions.id}`)}
             sx={{ borderRadius: 3, overflow: 'hidden', cursor: 'pointer', height: '100%',
                 transition: 'all 0.18s',
                 '&:hover': { borderColor: 'primary.main', transform: 'translateY(-3px)',
                     boxShadow: '0 8px 24px rgba(46,125,50,0.13)' } }}>
             <Box sx={{ height: 160, overflow: 'hidden', position: 'relative', bgcolor: 'grey.200' }}>
-                <Box component="img" src={region.image} alt={region.region_name}
+                <Box component="img" src={regions.region_images} alt={regions.region_name}
                     sx={{ width: '100%', height: '100%', objectFit: 'cover',
                         transition: 'transform 0.35s', '.MuiPaper-root:hover &': { transform: 'scale(1.06)' } }} />
-                {region.best_season && (
-                    <Chip label={region.best_season} size="small"
+                {regions.best_season && (
+                    <Chip label={regions.best_season} size="small"
                         sx={{ position: 'absolute', bottom: 8, left: 8, fontSize: '0.62rem', height: 20,
                             fontWeight: 600, bgcolor: 'rgba(0,0,0,0.55)', color: 'white', backdropFilter: 'blur(4px)' }} />
                 )}
             </Box>
             <Box sx={{ p: 2 }}>
-                <Typography variant="body2" fontWeight={700} gutterBottom>{region.region_name}</Typography>
+                <Typography variant="body2" fontWeight={700} gutterBottom>{regions.region_name}</Typography>
                 <Typography variant="caption" color="text.secondary"
                     sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {region.region_description}
+                    {regions.region_description}
                 </Typography>
             </Box>
         </Paper>
     );
 }
 
-function RouteCard({ route }) {
-    const cfg = DIFFICULTY_MAP[route.difficulty] ?? { label: route.difficulty, bg: '#f5f5f5', color: '#555' };
+function RouteCard({ trekkingRoutes }) {
+    const cfg = DIFFICULTY_MAP[trekkingRoutes.difficulty] ?? { label: trekkingRoutes.difficulty, bg: '#f5f5f5', color: '#555' };
     return (
-        <Paper variant="outlined" onClick={() => router.visit(`/routes/${route.id}`)}
+        <Paper variant="outlined" onClick={() => router.visit(`/trekkingRoutes/${trekkingRoutes.id}`)}
             sx={{ borderRadius: 3, overflow: 'hidden', cursor: 'pointer', height: '100%',
                 transition: 'all 0.18s',
                 '&:hover': { borderColor: 'primary.main', transform: 'translateY(-3px)',
                     boxShadow: '0 8px 24px rgba(46,125,50,0.13)' } }}>
             <Box sx={{ height: 160, overflow: 'hidden', position: 'relative', bgcolor: 'grey.200' }}>
-                <Box component="img" src={route.image} alt={route.trekking_route_name}
+                <Box component="img" src={trekkingRoutes.trekking_images} alt={trekkingRoutes.trekking_route_name}
                     sx={{ width: '100%', height: '100%', objectFit: 'cover',
                         transition: 'transform 0.35s', '.MuiPaper-root:hover &': { transform: 'scale(1.06)' } }} />
                 <Chip label={cfg.label} size="small"
@@ -325,14 +326,14 @@ function RouteCard({ route }) {
                         fontWeight: 700, bgcolor: cfg.bg, color: cfg.color }} />
             </Box>
             <Box sx={{ p: 2 }}>
-                <Typography variant="body2" fontWeight={700} noWrap gutterBottom>{route.trekking_route_name}</Typography>
+                <Typography variant="body2" fontWeight={700} noWrap gutterBottom>{trekkingRoutes.trekking_route_name}</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-                    {route.region_name}
+                    {trekkingRoutes.regions?.region_name}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <Typography variant="caption" fontWeight={600}>{route.duration_days} days</Typography>
+                    <Typography variant="caption" fontWeight={600}>{trekkingRoutes.duration_days} days</Typography>
                     <Typography variant="caption" color="text.disabled">·</Typography>
-                    <Typography variant="caption" fontWeight={600}>{Number(route.max_altitude).toLocaleString()}m</Typography>
+                    <Typography variant="caption" fontWeight={600}>{Number(trekkingRoutes.max_altitude).toLocaleString()}m</Typography>
                     {route.permit_required && (
                         <Chip label="Permit" size="small"
                             sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#fff3e0', color: '#e65100', fontWeight: 600 }} />
@@ -343,44 +344,64 @@ function RouteCard({ route }) {
     );
 }
 
-function TeaHouseCard({ house }) {
+function TeaHouseCard({ teaHouses }) {
     return (
-        <Paper variant="outlined" onClick={() => router.visit(`/teahouses/${house.id}`)}
+        <Paper variant="outlined" onClick={() => router.visit(`/teaHouses/${teaHouses.id}`)}
             sx={{ borderRadius: 3, overflow: 'hidden', cursor: 'pointer', height: '100%',
                 transition: 'all 0.18s',
                 '&:hover': { borderColor: 'primary.main', transform: 'translateY(-3px)',
                     boxShadow: '0 8px 24px rgba(46,125,50,0.13)' } }}>
             <Box sx={{ height: 160, overflow: 'hidden', bgcolor: 'grey.200' }}>
-                <Box component="img" src={house.image} alt={house.house_name}
+                <Box component="img" src={teaHouses.tea_house_images} alt={teaHouses.house_name}
                     sx={{ width: '100%', height: '100%', objectFit: 'cover',
                         transition: 'transform 0.35s', '.MuiPaper-root:hover &': { transform: 'scale(1.06)' } }} />
             </Box>
             <Box sx={{ p: 2 }}>
-                <Typography variant="body2" fontWeight={700} gutterBottom>{house.house_name}</Typography>
+                <Typography variant="body2" fontWeight={700} gutterBottom>{teaHouses.house_name}</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-                    {house.location} · {Number(house.altitude).toLocaleString()}m
+                    {teaHouses.location} · {Number(teaHouses.altitude_location).toLocaleString()}m
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: 1 }}>
-                    {house.wifi && <Chip label="WiFi" size="small"
+                    {teaHouses.wifi && <Chip label="WiFi" size="small"
                         sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 600 }} />}
-                    {house.electricity && <Chip label="Electric" size="small"
+                    {teaHouses.electricity && <Chip label="Electric" size="small"
                         sx={{ fontSize: '0.6rem', height: 16, bgcolor: '#fff8e1', color: '#e65100', fontWeight: 600 }} />}
                 </Box>
                 <Typography variant="caption" fontWeight={700} color="primary.main">
-                    ${house.cost} / night
+                    ${teaHouses.cost_per_night} / night
                 </Typography>
             </Box>
         </Paper>
     );
 }
 
-// ── About section ─────────────────────────────────────────────────────────────
-function AboutSection() {
+// About Section
+function AboutSection({ regionCount, routeCount, teaHouseCount }) {
     const features = [
-        { icon: <AutoAwesomeIcon />, title: 'AI Trip Planner',    desc: 'Chat with our AI to build a personalised day-by-day itinerary in minutes.',      color: '#2e7d32', bg: '#e8f5e9' },
-        { icon: <MapIcon />,         title: '50+ Trekking Routes', desc: 'Comprehensive coverage of Nepal\'s greatest trails with up-to-date info.',       color: '#1565c0', bg: '#e3f2fd' },
-        { icon: <GroupsIcon />,      title: 'Community Reports',   desc: 'Real trail conditions from trekkers who just came back — not outdated guides.',   color: '#e65100', bg: '#fff8e1' },
-        { icon: <SupportAgentIcon />,title: '24/7 Support',        desc: 'Got a question at 2am before your flight? Our AI and team are always on.',       color: '#6a1b9a', bg: '#f3e5f5' },
+        {
+            icon: <AutoAwesomeIcon />,
+            title: 'AI Trip Planner',
+            desc: 'Chat with our AI to build a personalised day-by-day itinerary in minutes.',
+            color: '#2e7d32', bg: '#e8f5e9',
+        },
+        {
+            icon: <MapIcon />,
+            title: '50+ Trekking Routes',
+            desc: "Comprehensive coverage of Nepal's greatest trails with up-to-date info.",
+            color: '#1565c0', bg: '#e3f2fd',
+        },
+        {
+            icon: <GroupsIcon />,
+            title: 'Community Reports',
+            desc: 'Real trail conditions from trekkers who just came back — not outdated guides.',
+            color: '#e65100', bg: '#fff8e1',
+        },
+        {
+            icon: <SupportAgentIcon />,
+            title: '24/7 Support',
+            desc: 'Got a question at 2am before your flight? Our AI and team are always on.',
+            color: '#6a1b9a', bg: '#f3e5f5',
+        },
     ];
 
     return (
@@ -390,9 +411,13 @@ function AboutSection() {
             background: 'linear-gradient(135deg, #0d1f14 0%, #1a3a2f 100%)',
             p: { xs: 3, md: 5 },
         }}>
-            <Box sx={{ mb: 5, display: 'flex', alignItems: 'flex-start', gap: 2,
-                flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
-                <Box>
+            {/* Top row: text + stats */}
+            <Box sx={{
+                display: 'flex', flexDirection: { xs: 'column', md: 'row' },
+                alignItems: { md: 'flex-start' }, justifyContent: 'space-between',
+                gap: 4, mb: 5,
+            }}>
+                <Box sx={{ maxWidth: 440 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                         <TerrainIcon sx={{ color: 'secondary.main', fontSize: 16 }} />
                         <Typography variant="caption"
@@ -406,48 +431,83 @@ function AboutSection() {
                         <Box component="span" sx={{ color: 'secondary.main' }}>Made Effortless</Box>
                     </Typography>
                     <Typography variant="body1"
-                        sx={{ color: 'rgba(255,255,255,0.5)', maxWidth: 420, lineHeight: 1.8 }}>
-                        TrekSathi was built by Nepal trekkers for Nepal trekkers.
-                        We combine AI technology with deep local knowledge so you spend
-                        less time planning and more time on the trail.
+                        sx={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>
+                        TrekSathi was built by Nepal trekkers for Nepal trekkers. We combine AI
+                        technology with deep local knowledge so you spend less time planning and
+                        more time on the trail.
                     </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: { xs: 3, md: 4 }, flexWrap: 'wrap', alignSelf: { md: 'center' } }}>
-                    {[['50+', 'Routes'], ['15+', 'Regions'], ['500+', 'Tea Houses'], ['24/7', 'AI']].map(([val, label]) => (
-                        <Box key={label} sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" fontWeight={800} sx={{ color: 'secondary.main', lineHeight: 1 }}>{val}</Typography>
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>{label}</Typography>
+
+                {/* Stats */}
+                <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: 2,
+                    alignSelf: { md: 'center' },
+                }}>
+                    {[[routeCount, 'Routes'],[regionCount,'Regions'],[teaHouseCount,'Tea Houses'], ['24/7', 'AI']].map(([val, label]) => (
+                        <Box key={label} sx={{
+                            textAlign: 'center', px: 2.5, py: 1.5,
+                            bgcolor: 'rgba(255,255,255,0.05)',
+                            borderRadius: 2.5,
+                            border: '1px solid rgba(255,255,255,0.08)',
+                        }}>
+                            <Typography variant="h4" fontWeight={800} sx={{ color: 'secondary.main', lineHeight: 1 }}>
+                                {val}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                {label}
+                            </Typography>
                         </Box>
                     ))}
                 </Box>
             </Box>
-            <Grid container spacing={2}>
+
+            {/* Feature cards — CSS grid, container-aware */}
+            <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                    xs: '1fr',
+                    sm: 'repeat(2, 1fr)',
+                    lg: 'repeat(4, 1fr)',
+                },
+                gap: 2,
+            }}>
                 {features.map(f => (
-                    <Grid item xs={12} sm={6} md={3} key={f.title}>
+                    <Box key={f.title} sx={{
+                        p: 2.5, borderRadius: 3,
+                        bgcolor: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.09)',
+                            borderColor: 'rgba(255,255,255,0.16)',
+                            transform: 'translateY(-2px)',
+                        },
+                    }}>
                         <Box sx={{
-                            p: 2.5, borderRadius: 3,
-                            bgcolor: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            height: '100%', transition: 'all 0.2s',
-                            '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.15)' },
+                            width: 44, height: 44, borderRadius: 2,
+                            bgcolor: f.bg, color: f.color,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            mb: 2,
                         }}>
-                            <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: f.bg, color: f.color,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                                {f.icon}
-                            </Box>
-                            <Typography variant="body2" fontWeight={700} color="white" gutterBottom>{f.title}</Typography>
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
-                                {f.desc}
-                            </Typography>
+                            {f.icon}
                         </Box>
-                    </Grid>
+                        <Typography variant="body2" fontWeight={700} color="white" gutterBottom>
+                            {f.title}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
+                            {f.desc}
+                        </Typography>
+                    </Box>
                 ))}
-            </Grid>
+            </Box>
         </Box>
     );
 }
 
-// ── Contact section ───────────────────────────────────────────────────────────
+
+//Contact Section
 const QUICK_TOPICS = ['Trek Planning', 'Permit Info', 'Tea House Booking', 'AI Planner Help', 'General Inquiry'];
 
 function ContactSection() {
@@ -474,130 +534,153 @@ function ContactSection() {
                     </Typography>
                 </Box>
             </Box>
-            <Grid container spacing={3} alignItems="flex-start">
-                <Grid item xs={12} md={4}>
-                    <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, bgcolor: '#f9fff9', borderColor: '#c8e6c9' }}>
-                        <Typography variant="subtitle2" fontWeight={700} color="primary.dark" gutterBottom>
-                            🏔️ Quick Answers
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8, mb: 2 }}>
-                            Our AI can instantly answer most trekking questions — permits, altitudes,
-                            best seasons, tea houses, and itineraries.
-                        </Typography>
-                        <Button variant="contained" fullWidth size="small"
-                            startIcon={<AutoAwesomeIcon />}
-                            onClick={() => router.visit('/chat')}>
-                            Ask the AI Instead
-                        </Button>
-                        <Divider sx={{ my: 2 }} />
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.8 }}>
-                            📧 hello@treksathi.com<br />
-                            🕒 We reply within 24 hours<br />
-                            📍 Based in Kathmandu, Nepal
-                        </Typography>
-                    </Paper>
-                </Grid>
-                <Grid item xs={12} md={8}>
-                    <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
-                        {sent ? (
-                            <Box sx={{ textAlign: 'center', py: 4 }}>
-                                <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: '#e8f5e9',
-                                    mx: 'auto', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <CheckCircleOutlineIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                                </Box>
-                                <Typography variant="h6" fontWeight={700} gutterBottom>Message Sent!</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                    We'll get back to you within 24 hours.
-                                </Typography>
-                                <Button variant="outlined" size="small" onClick={() => setSent(false)}>
-                                    Send Another
-                                </Button>
+
+            {/* Two-column layout using CSS grid */}
+            <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '320px 1fr' },
+                gap: 3,
+                alignItems: 'flex-start',
+            }}>
+                {/* Left panel */}
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, bgcolor: '#f9fff9', borderColor: '#c8e6c9' }}>
+                    <Typography variant="subtitle2" fontWeight={700} color="primary.dark" gutterBottom>
+                        🏔️ Quick Answers
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8, mb: 2 }}>
+                        Our AI can instantly answer most trekking questions — permits, altitudes,
+                        best seasons, tea houses, and itineraries.
+                    </Typography>
+                    <Button variant="contained" fullWidth size="small"
+                        startIcon={<AutoAwesomeIcon />}
+                        onClick={() => router.visit('/chat')}>
+                        Ask the AI Instead
+                    </Button>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                        {[
+                            '📧 hello@treksathi.com',
+                            '🕒 We reply within 24 hours',
+                            '📍 Based in Kathmandu, Nepal',
+                        ].map(line => (
+                            <Typography key={line} variant="caption" color="text.secondary">{line}</Typography>
+                        ))}
+                    </Box>
+                </Paper>
+
+                {/* Right panel — form */}
+                <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+                    {sent ? (
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                            <Box sx={{
+                                width: 56, height: 56, borderRadius: '50%', bgcolor: '#e8f5e9',
+                                mx: 'auto', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                                <CheckCircleOutlineIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                             </Box>
-                        ) : (
-                            <Box component="form" onSubmit={handleSubmit}
-                                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                                    <TextField label="Your Name" value={data.contact_name}
-                                        onChange={e => setData('contact_name', e.target.value)}
-                                        error={!!errors.contact_name} helperText={errors.contact_name}
-                                        required placeholder="e.g. Ram Sharma"
-                                        InputProps={{ startAdornment: (
-                                            <InputAdornment position="start">
-                                                <PersonOutlineIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-                                            </InputAdornment>
-                                        )}} />
-                                    <TextField label="Email" type="email" value={data.contact_email}
-                                        onChange={e => setData('contact_email', e.target.value)}
-                                        error={!!errors.contact_email} helperText={errors.contact_email}
-                                        required placeholder="you@example.com"
-                                        InputProps={{ startAdornment: (
-                                            <InputAdornment position="start">
-                                                <EmailOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-                                            </InputAdornment>
-                                        )}} />
-                                </Box>
-                                <Box>
-                                    <TextField label="Topic" value={data.topic}
-                                        onChange={e => setData('topic', e.target.value)}
-                                        error={!!errors.topic} helperText={errors.topic}
-                                        required placeholder="What's this about?"
-                                        InputProps={{ startAdornment: (
-                                            <InputAdornment position="start">
-                                                <TopicOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-                                            </InputAdornment>
-                                        )}} />
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
-                                        {QUICK_TOPICS.map(t => (
-                                            <Chip key={t} label={t} size="small"
-                                                onClick={() => setData('topic', t)}
-                                                variant={data.topic === t ? 'filled' : 'outlined'}
-                                                sx={{ fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.15s',
-                                                    ...(data.topic === t
-                                                        ? { bgcolor: 'primary.main', color: 'white' }
-                                                        : { '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }
-                                                    )}} />
-                                        ))}
-                                    </Box>
-                                </Box>
-                                <TextField label="Message" value={data.message}
-                                    onChange={e => setData('message', e.target.value)}
-                                    error={!!errors.message}
-                                    helperText={errors.message || `${data.message.length}/2000`}
-                                    required multiline rows={4}
-                                    placeholder="Tell us what you need…"
-                                    inputProps={{ maxLength: 2000 }}
+                            <Typography variant="h6" fontWeight={700} gutterBottom>Message Sent!</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                We'll get back to you within 24 hours.
+                            </Typography>
+                            <Button variant="outlined" size="small" onClick={() => setSent(false)}>
+                                Send Another
+                            </Button>
+                        </Box>
+                    ) : (
+                        <Box component="form" onSubmit={handleSubmit}
+                            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+                            {/* Name + email row */}
+                            <Box sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                gap: 2,
+                            }}>
+                                <TextField label="Your Name" value={data.contact_name}
+                                    onChange={e => setData('contact_name', e.target.value)}
+                                    error={!!errors.contact_name} helperText={errors.contact_name}
+                                    required placeholder="e.g. Ram Sharma"
                                     InputProps={{ startAdornment: (
-                                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
-                                            <MessageOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                        <InputAdornment position="start">
+                                            <PersonOutlineIcon fontSize="small" sx={{ color: 'text.disabled' }} />
                                         </InputAdornment>
                                     )}} />
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button type="submit" variant="contained" size="large"
-                                        disabled={processing}
-                                        endIcon={processing ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
-                                        sx={{ px: 4 }}>
-                                        {processing ? 'Sending…' : 'Send Message'}
-                                    </Button>
+                                <TextField label="Email" type="email" value={data.contact_email}
+                                    onChange={e => setData('contact_email', e.target.value)}
+                                    error={!!errors.contact_email} helperText={errors.contact_email}
+                                    required placeholder="you@example.com"
+                                    InputProps={{ startAdornment: (
+                                        <InputAdornment position="start">
+                                            <EmailOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                        </InputAdornment>
+                                    )}} />
+                            </Box>
+
+                            {/* Topic */}
+                            <Box>
+                                <TextField label="Topic" value={data.topic}
+                                    onChange={e => setData('topic', e.target.value)}
+                                    error={!!errors.topic} helperText={errors.topic}
+                                    required placeholder="What's this about?"
+                                    InputProps={{ startAdornment: (
+                                        <InputAdornment position="start">
+                                            <TopicOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                        </InputAdornment>
+                                    )}} />
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1 }}>
+                                    {QUICK_TOPICS.map(t => (
+                                        <Chip key={t} label={t} size="small"
+                                            onClick={() => setData('topic', t)}
+                                            variant={data.topic === t ? 'filled' : 'outlined'}
+                                            sx={{
+                                                fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.15s',
+                                                ...(data.topic === t
+                                                    ? { bgcolor: 'primary.main', color: 'white' }
+                                                    : { '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }
+                                                ),
+                                            }} />
+                                    ))}
                                 </Box>
                             </Box>
-                        )}
-                    </Paper>
-                </Grid>
-            </Grid>
+
+                            {/* Message */}
+                            <TextField label="Message" value={data.message}
+                                onChange={e => setData('message', e.target.value)}
+                                error={!!errors.message}
+                                helperText={errors.message || `${data.message.length}/2000`}
+                                required multiline rows={4}
+                                placeholder="Tell us what you need…"
+                                inputProps={{ maxLength: 2000 }}
+                                InputProps={{ startAdornment: (
+                                    <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                                        <MessageOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                                    </InputAdornment>
+                                )}} />
+
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <Button type="submit" variant="contained" size="large"
+                                    disabled={processing}
+                                    endIcon={processing ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
+                                    sx={{ px: 4 }}>
+                                    {processing ? 'Sending…' : 'Send Message'}
+                                </Button>
+                            </Box>
+                        </Box>
+                    )}
+                </Paper>
+            </Box>
         </Box>
     );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-export default function Home() {
+
+// Main page
+export default function Home({ regions, trekkingRoutes, teaHouses, savedTrips, chatSessions }) {
     const { auth }  = usePage().props;
     const user      = auth?.user;
     const theme     = useTheme();
     const isMobile  = useMediaQuery(theme.breakpoints.down('sm'));
     const [sidebarOpen, setSidebarOpen] = useState(true);
-
-    const chatSessions = [];
-    const savedTrips   = [];
 
     return (
         <>
@@ -637,42 +720,81 @@ export default function Home() {
                         transition: 'margin-left 0.25s ease',
                         p: { xs: 2, sm: 3, md: 4 },
                     }}>
-                        {/* ── Hero ── */}
+                        {/*Hero*/}
                         <HeroSection user={user} />
 
-                        {/* ── Regions ── */}
+                        {/*Regions*/}
                         <ScrollSection id="explore" title="Explore Regions" emoji="🗺️"
                             subtitle="Click a region to see all routes and details"
-                            itemCount={DUMMY_REGIONS.length}>
-                            {DUMMY_REGIONS.map(r => <ScrollCard key={r.id}><RegionCard region={r} /></ScrollCard>)}
+                            itemCount={regions.length}>
+                            {regions.map(r => <ScrollCard key={r.id}><RegionCard regions={r} /></ScrollCard>)}
                         </ScrollSection>
 
                         <Divider sx={{ mb: 7 }} />
 
-                        {/* ── Routes ── */}
+                        {/*Routes*/}
                         <ScrollSection id="routes" title="Popular Trekking Routes" emoji="🏔️"
                             subtitle="Top routes across Nepal — click for full details"
-                            itemCount={DUMMY_ROUTES.length}>
-                            {DUMMY_ROUTES.map(r => <ScrollCard key={r.id}><RouteCard route={r} /></ScrollCard>)}
+                            itemCount={trekkingRoutes.length}>
+                            {trekkingRoutes.map(r => <ScrollCard key={r.id}><RouteCard trekkingRoutes={r} /></ScrollCard>)}
                         </ScrollSection>
 
                         <Divider sx={{ mb: 7 }} />
 
-                        {/* ── Tea Houses ── */}
+                        {/*Tea Houses*/}
                         <ScrollSection id="tea-houses" title="Tea Houses" emoji="🏠"
                             subtitle="Accommodation along the trails"
-                            itemCount={DUMMY_TEAHOUSES.length}>
-                            {DUMMY_TEAHOUSES.map(h => <ScrollCard key={h.id}><TeaHouseCard house={h} /></ScrollCard>)}
+                            itemCount={teaHouses.length}>
+                            {teaHouses.map(h => <ScrollCard key={h.id}><TeaHouseCard teaHouses={h} /></ScrollCard>)}
                         </ScrollSection>
 
                         <Divider sx={{ mb: 7 }} />
+                        {/*Community*/}
+                        <Box id="community" sx={{mb: 7, scrollMarginTop: '80px'}}>
+                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Typography sx={{ fontSize: 22 }}>👥</Typography>
+                                    <Box>
+                                        <Typography variant="h6" fontWeight={700}>Community Trail Reports</Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            Real conditions from trekkers who've been there recently
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Button variant="outlined" endIcon={<ArrowForwardIcon />}
+                                    onClick={() => router.visit('/community')}>
+                                    View All Reports
+                                </Button>
+                            </Box>
+                            <Paper variant="outlined" sx={{
+                                borderRadius: 3, p: 4, textAlign: 'center',
+                                bgcolor: '#f9fff9', borderColor: '#c8e6c9',
+                            }}>
+                                <GroupsIcon sx={{ fontSize: 48, color: 'primary.light', mb: 1.5 }} />
+                                <Typography variant="h6" fontWeight={700} gutterBottom>
+                                    Share Your Trek Experience
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, maxWidth: 420, mx: 'auto' }}>
+                                    Help the community with real-time trail conditions, tips, and stories
+                                    from your recent treks across Nepal.
+                                </Typography>
+                                <Button variant="contained" onClick={() => router.visit('/community')}>
+                                    Browse Community Reports
+                                </Button>
+                            </Paper>
+                        </Box>
+                        <Divider sx={{ mb: 7 }} />
 
-                        {/* ── About ── */}
-                        <AboutSection />
+                        {/*About*/}
+                        <AboutSection
+                            regionCount={regions.length}
+                            routeCount={trekkingRoutes.length}
+                            teaHouseCount={teaHouses.length}
+                        />
 
                         <Divider sx={{ mb: 7 }} />
 
-                        {/* ── Contact ── */}
+                        {/*Contact*/}
                         <ContactSection />
                     </Box>
                 </Box>

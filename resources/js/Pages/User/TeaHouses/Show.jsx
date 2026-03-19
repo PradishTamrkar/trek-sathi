@@ -1,227 +1,210 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import {
-    Box, Typography, Chip, Paper, Button, Divider, Grid,
+    Box, Typography, Chip, Paper, Button, Divider,
+    Snackbar, Alert,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import WifiIcon from '@mui/icons-material/Wifi';
-import WifiOffIcon from '@mui/icons-material/WifiOff';
-import BoltIcon from '@mui/icons-material/Bolt';
-import HotelIcon from '@mui/icons-material/Hotel';
-import TerrainIcon from '@mui/icons-material/Terrain';
-import AltRouteIcon from '@mui/icons-material/AltRoute';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import Navbar from '../../../Components/User/Navbar';
-import Footer from '../../../Components/User/Footer';
+import ArrowBackIcon       from '@mui/icons-material/ArrowBack';
+import HouseIcon           from '@mui/icons-material/House';
+import TerrainIcon         from '@mui/icons-material/Terrain';
+import AttachMoneyIcon     from '@mui/icons-material/AttachMoney';
+import WifiIcon            from '@mui/icons-material/Wifi';
+import LocalDiningIcon     from '@mui/icons-material/LocalDining';
+import BedIcon             from '@mui/icons-material/Bed';
+import DirectionsWalkIcon  from '@mui/icons-material/DirectionsWalk';
+import ChevronRightIcon    from '@mui/icons-material/ChevronRight';
+import Navbar              from '../../../Components/User/Navbar';
+import Footer              from '../../../Components/User/Footer';
+import { useState } from 'react';
 
-//Dummy fallback
-const DUMMY = {
-    id: 1,
-    house_name: 'Everest View Hotel',
-    location: 'Namche Bazaar',
-    altitude_location: 3880,
-    cost_per_night: 15,
-    has_wifi: true,
-    has_electricity: true,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=85',
-    route_day: {
-        id: 2,
-        day_number: 2,
-        start_point: 'Phakding',
-        end_point: 'Namche Bazaar',
-        altitude: 3440,
-        trekking_route: {
-            id: 1,
-            trekking_route_name: 'Everest Base Camp Trek',
-        },
-    },
-};
-
-function AmenityBadge({ icon, label, active, activeColor = 'primary.main', activeBg = '#e8f5e9' }) {
+function AmenityBadge({ icon, label, available }) {
     return (
         <Box sx={{
-            display: 'flex', alignItems: 'center', gap: 1.5,
+            display: 'flex', alignItems: 'center', gap: 1,
             p: 1.5, borderRadius: 2,
-            bgcolor: active ? activeBg : 'grey.100',
-            border: '1px solid', borderColor: active ? activeColor : 'transparent',
-            opacity: active ? 1 : 0.5,
+            bgcolor: available ? '#e8f5e9' : '#f5f5f5',
+            border: '1px solid', borderColor: available ? '#c8e6c9' : '#e0e0e0',
         }}>
-            <Box sx={{ color: active ? activeColor : 'text.disabled' }}>{icon}</Box>
-            <Typography variant="body2" fontWeight={active ? 600 : 400}
-                color={active ? 'text.primary' : 'text.disabled'}>
+            <Box sx={{ color: available ? 'primary.main' : 'text.disabled', display: 'flex' }}>{icon}</Box>
+            <Typography variant="caption" fontWeight={600} color={available ? 'primary.dark' : 'text.disabled'}>
                 {label}
             </Typography>
-            {active && (
-                <Chip label="Available" size="small"
-                    sx={{ ml: 'auto', fontSize: '0.6rem', height: 18,
-                        bgcolor: activeBg, color: activeColor, fontWeight: 700 }} />
-            )}
         </Box>
     );
 }
 
 export default function TeaHouseShow({ teaHouse }) {
-    const { auth } = usePage().props;
-    const data = teaHouse ?? DUMMY;
-    const route = data.route_day?.trekking_route;
+    const { auth, flash } = usePage().props;
+    const [snackbar, setSnackbar] = useState(!!flash?.success || !!flash?.failed);
+
+    const route       = teaHouse.trekking_route;
+    const region      = route?.regions;
 
     return (
         <>
-            <Head title={`${data.house_name} — TrekSathi`} />
+            <Head title={`${teaHouse.house_name} — TrekSathi`} />
+
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'grey.50' }}>
                 <Navbar user={auth?.user} />
 
-                <Box sx={{ pt: '64px' }}>
+                <Box sx={{ pt: '64px', flex: 1 }}>
                     {/* Hero */}
-                    <Box sx={{ position: 'relative', height: { xs: 220, sm: 300, md: 380 }, bgcolor: 'grey.300', overflow: 'hidden' }}>
-                        {(data.image ?? data.trekking_images) && (
-                            <Box component="img"
-                                src={data.image ?? data.trekking_images}
-                                alt={data.house_name}
-                                sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        )}
-                        <Box sx={{ position: 'absolute', inset: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)' }} />
-                        <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: { xs: 3, md: 5 } }}>
-                            <Button onClick={() => router.back()} startIcon={<ArrowBackIcon />} size="small"
-                                sx={{ color: 'rgba(255,255,255,0.7)', mb: 2, px: 0, '&:hover': { color: 'white' } }}>
-                                Back
-                            </Button>
-                            {/* Breadcrumb — route name */}
-                            {route && (
-                                <Typography variant="caption"
-                                    onClick={() => router.visit(`/routes/${route.id}`)}
-                                    sx={{ color: 'secondary.main', cursor: 'pointer', display: 'block', mb: 0.5,
-                                        '&:hover': { textDecoration: 'underline' } }}>
-                                    {route.trekking_route_name} · Day {data.route_day?.day_number}
-                                </Typography>
+                    <Box sx={{
+                        background: 'linear-gradient(135deg, #1a2e1f 0%, #0d1f14 100%)',
+                        backgroundImage: teaHouse.tea_house_images
+                            ? `linear-gradient(to bottom, rgba(10,20,14,0.45) 0%, rgba(10,20,14,0.88) 100%), url(${teaHouse.tea_house_images})`
+                            : undefined,
+                        backgroundSize: 'cover', backgroundPosition: 'center',
+                        px: { xs: 3, md: 8 }, py: { xs: 5, md: 7 },
+                    }}>
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => history.back()}
+                            sx={{ color: 'rgba(255,255,255,0.6)', mb: 3, '&:hover': { color: 'white' } }}
+                        >
+                            Back
+                        </Button>
+
+                        {/* Breadcrumb */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5, flexWrap: 'wrap' }}>
+                            {region && (
+                                <>
+                                    <Typography variant="caption"
+                                        onClick={() => router.visit(route('regions.show', region.id))}
+                                        sx={{ color: 'secondary.main', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+                                        {region.region_name}
+                                    </Typography>
+                                    <ChevronRightIcon sx={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }} />
+                                </>
                             )}
-                            <Typography variant="h3" fontWeight={800}
-                                sx={{ color: 'white', fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-                                {data.house_name}
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mt: 0.75 }}>
-                                {data.location}
-                                {data.altitude_location && ` · ${Number(data.altitude_location).toLocaleString()}m altitude`}
+                            {route && (
+                                <>
+                                    <Typography variant="caption"
+                                        onClick={() => router.visit(route('trekkingRoute.show', route.id))}
+                                        sx={{ color: 'rgba(255,255,255,0.5)', cursor: 'pointer', '&:hover': { color: 'rgba(255,255,255,0.8)' } }}>
+                                        {route.trekking_route_name}
+                                    </Typography>
+                                    <ChevronRightIcon sx={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }} />
+                                </>
+                            )}
+
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <HouseIcon sx={{ color: 'secondary.main', fontSize: 16 }} />
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                Tea House
                             </Typography>
                         </Box>
+
+                        <Typography variant="h3" fontWeight={800}
+                            sx={{ color: 'white', fontFamily: 'Georgia, serif', mb: 2 }}>
+                            {teaHouse.house_name}
+                        </Typography>
+
+                        {/* Price badge */}
+                        {teaHouse.cost_per_night && (
+                            <Chip
+                                icon={<AttachMoneyIcon sx={{ fontSize: '14px !important', color: 'secondary.main !important' }} />}
+                                label={`$${teaHouse.cost_per_night} / night`}
+                                sx={{ bgcolor: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 700, backdropFilter: 'blur(4px)' }}
+                            />
+                        )}
                     </Box>
 
-                    {/* Content */}
+                    {/* Body */}
                     <Box sx={{ maxWidth: 900, mx: 'auto', px: { xs: 2, md: 5 }, py: 5 }}>
-                        <Grid container spacing={4}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '3fr 2fr' }, gap: 5 }}>
 
-                            {/* Left — amenities + location info */}
-                            <Grid item xs={12} md={7}>
-                                <Typography variant="h6" fontWeight={700} gutterBottom>Amenities</Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 4 }}>
-                                    <AmenityBadge
-                                        icon={data.has_wifi ? <WifiIcon /> : <WifiOffIcon />}
-                                        label="WiFi"
-                                        active={data.has_wifi}
-                                        activeColor="#1565c0"
-                                        activeBg="#e3f2fd"
-                                    />
-                                    <AmenityBadge
-                                        icon={<BoltIcon />}
-                                        label="Electricity"
-                                        active={data.has_electricity}
-                                        activeColor="#e65100"
-                                        activeBg="#fff8e1"
-                                    />
-                                    <AmenityBadge
-                                        icon={<HotelIcon />}
-                                        label="Dormitory & Private Rooms"
-                                        active={true}
-                                        activeColor="#2e7d32"
-                                        activeBg="#e8f5e9"
-                                    />
-                                </Box>
-
-                                {/* Route day context */}
-                                {data.route_day && (
-                                    <>
-                                        <Typography variant="h6" fontWeight={700} gutterBottom>Location on Trail</Typography>
-                                        <Paper variant="outlined" sx={{ borderRadius: 2.5, p: 2.5 }}>
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                                                {route && (
-                                                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                                                        <AltRouteIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>Part of Route</Typography>
-                                                            <Typography
-                                                                variant="body2" fontWeight={600}
-                                                                onClick={() => router.visit(`/routes/${route.id}`)}
-                                                                sx={{ cursor: 'pointer', color: 'primary.main',
-                                                                    '&:hover': { textDecoration: 'underline' } }}>
-                                                                {route.trekking_route_name}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
-                                                )}
-                                                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                                                    <TerrainIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                                                    <Box>
-                                                        <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>Day {data.route_day.day_number} Stop</Typography>
-                                                        <Typography variant="body2" fontWeight={600}>
-                                                            {data.route_day.start_point} → {data.route_day.end_point}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </Box>
-                                        </Paper>
-                                    </>
-                                )}
-                            </Grid>
-
-                            {/* Right — booking summary + CTA */}
-                            <Grid item xs={12} md={5}>
-                                <Paper variant="outlined" sx={{ borderRadius: 3, p: 3, mb: 3 }}>
-                                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>Stay Details</Typography>
-                                    <Divider sx={{ mb: 2 }} />
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <Box>
-                                            <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>Location</Typography>
-                                            <Typography variant="body2" fontWeight={600}>{data.location ?? '—'}</Typography>
-                                        </Box>
-                                        {data.altitude_location && (
-                                            <Box>
-                                                <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>Altitude</Typography>
-                                                <Typography variant="body2" fontWeight={600}>{Number(data.altitude_location).toLocaleString()}m</Typography>
-                                            </Box>
-                                        )}
-                                        {data.cost_per_night && (
-                                            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: '#e8f5e9',
-                                                border: '1px solid', borderColor: 'primary.light' }}>
-                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Price per night</Typography>
-                                                <Typography variant="h5" fontWeight={800} color="primary.main">
-                                                    ${Number(data.cost_per_night).toFixed(0)}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">Approximate — may vary seasonally</Typography>
-                                            </Box>
-                                        )}
+                            {/* LEFT */}
+                            <Box>
+                                {teaHouse.description && (
+                                    <Box sx={{ mb: 4 }}>
+                                        <Typography variant="h6" fontWeight={700} gutterBottom>About</Typography>
+                                        <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.9 }}>
+                                            {teaHouse.description}
+                                        </Typography>
                                     </Box>
+                                )}
+
+                                {/* Amenities */}
+                                <Box>
+                                    <Typography variant="h6" fontWeight={700} gutterBottom>Amenities</Typography>
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5 }}>
+                                        <AmenityBadge icon={<BedIcon sx={{ fontSize: 16 }} />}       label="Dormitory / Rooms" available />
+                                        <AmenityBadge icon={<LocalDiningIcon sx={{ fontSize: 16 }} />} label="Meals Served"     available />
+                                        <AmenityBadge icon={<WifiIcon sx={{ fontSize: 16 }} />}      label="WiFi"
+                                            available={Boolean(teaHouse.has_wifi)} />
+                                        <AmenityBadge icon={<AttachMoneyIcon sx={{ fontSize: 16 }} />} label="Charging Station"
+                                            available={Boolean(teaHouse.has_charging)} />
+                                    </Box>
+                                    <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1.5 }}>
+                                        * Amenity availability may vary by season. Confirm on arrival.
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {/* RIGHT */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                {/* Pricing */}
+                                <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+                                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>Pricing</Typography>
+                                    <Divider sx={{ mb: 2 }} />
+                                    {teaHouse.cost_per_night ? (
+                                        <>
+                                            <Typography variant="h5" fontWeight={800} color="primary.main">
+                                                ${teaHouse.cost_per_night}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.disabled">per night / person</Typography>
+                                        </>
+                                    ) : (
+                                        <Typography variant="body2" color="text.secondary">Price not listed</Typography>
+                                    )}
                                 </Paper>
 
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                                    <Button variant="contained" fullWidth startIcon={<AutoAwesomeIcon />}
-                                        onClick={() => router.visit('/chat')}
-                                        sx={{ py: 1.25 }}>
-                                        Plan this Trek with AI
-                                    </Button>
-                                    {route && (
-                                        <Button variant="outlined" fullWidth
-                                            onClick={() => router.visit(`/routes/${route.id}`)}
-                                            sx={{ py: 1.25 }}>
+                                {/* Route link */}
+                                {route && (
+                                    <Paper variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                                            <TerrainIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                                            <Typography variant="subtitle2" fontWeight={700}>On the Trail</Typography>
+                                        </Box>
+                                        <Divider sx={{ mb: 2 }} />
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                            {region && (
+                                                <Box>
+                                                    <Typography variant="caption" color="text.disabled">Region</Typography>
+                                                    <Typography variant="body2" fontWeight={600}>{region.region_name}</Typography>
+                                                </Box>
+                                            )}
+                                            <Box>
+                                                <Typography variant="caption" color="text.disabled">Route</Typography>
+                                                <Typography variant="body2" fontWeight={600}>{route.trekking_route_name}</Typography>
+                                            </Box>
+                                        </Box>
+                                        <Button
+                                            variant="outlined" size="small" fullWidth
+                                            startIcon={<DirectionsWalkIcon />}
+                                            onClick={() => router.visit(route('trekkingRoute.show', route.id))}
+                                            sx={{ mt: 2 }}
+                                        >
                                             View Full Route
                                         </Button>
-                                    )}
-                                </Box>
-                            </Grid>
-                        </Grid>
+                                    </Paper>
+                                )}
+                            </Box>
+                        </Box>
                     </Box>
                 </Box>
+
                 <Footer />
             </Box>
+
+            <Snackbar open={snackbar} autoHideDuration={3000} onClose={() => setSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert severity={flash?.failed ? 'error' : 'success'} onClose={() => setSnackbar(false)} sx={{ borderRadius: 2 }}>
+                    {flash?.success ?? flash?.failed}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

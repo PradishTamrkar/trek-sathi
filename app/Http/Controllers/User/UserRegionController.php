@@ -12,7 +12,10 @@ class UserRegionController extends Controller
 
     public function show(string $id)
     {
-        $region=Region::with('trekkingRoutes')->find($id);
+        $region=Region::with(['trekkingRoutes'=>function($q){
+            $q->withCount('routeDays')
+              ->with('permits');
+        }])->find($id);
 
         if(!$region)
         {
@@ -20,7 +23,7 @@ class UserRegionController extends Controller
         }
 
         return Inertia::render('User/Regions/Show',[
-            'region'=>$region
+            'region'=>$region,
         ]);
     }
 }

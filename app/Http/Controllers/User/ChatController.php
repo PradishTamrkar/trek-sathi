@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\ChatSession;
 use App\Models\SavedTrip;
+use App\Models\TrekkingRoute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -24,9 +25,12 @@ class ChatController extends Controller
                 ->take(30)
                 ->get(['id','title','created_at']),
             'savedTrips'=>SavedTrip::where('user_id',$user->id)
+                ->with('trekkingRoute:id,trekking_route_name')
                 ->latest()
                 ->take(20)
-                ->get(),
+                ->get(['id','trip_title','trekking_route_id','created_at']),
+            'trekkingRoutes'=>TrekkingRoute::orderBy('trekking_route_name')
+                ->get(['id','trekking_route_name']),
             'sessionId'=>null,
         ]);
     }
@@ -38,11 +42,11 @@ class ChatController extends Controller
         $chatSession=ChatSession::where('id',$session)
             ->where('user_id',$user->id)
             ->with('messages')
-            ->find();
+            ->first();
 
         if(!$chatSession)
         {
-            return back()->with('failed','Session not found');
+            return redirect()->route('chat.index')->with('failed','Session not found');
         }
 
         return Inertia::render('User/Chat',[
@@ -54,9 +58,11 @@ class ChatController extends Controller
                 ->with('trekkingRoute:id,trekking_route_name')
                 ->latest()
                 ->take(20)
-                ->get(),
-                'sessionId'=>$chatSession->id,
-                'messages'=>$chatSession->messages,
+                ->get(['id', 'trip_title', 'trekking_route_id', 'created_at']),
+            'trekkingRoutes'=>TrekkingRoute::orderBy('trekking_route_name')
+                ->get(['id','trekking_route_name']),
+            'sessionId'=>$chatSession->id,
+            'messages'=>$chatSession->messages,
         ]);
     }
 }

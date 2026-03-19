@@ -17,6 +17,8 @@ use App\Http\Controllers\User\UserRegionController;
 use App\Http\Controllers\User\UserTeaHouseController;
 use App\Http\Controllers\User\UserTrekkingRouteController;
 use App\Http\Controllers\User\UserContactController;
+use App\Http\Controllers\User\UserSubmissionController;
+use App\Http\Controllers\User\UserSavedTripsController;
 use App\Models\ChatSession;
 use Illuminate\Support\Facades\Route;
 
@@ -62,4 +64,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teaHouses/{id}',[UserTeaHouseController::class,'show'])->name('teaHouse.show');
     Route::get('/chat',[ChatController::class,'index'])->name('chat.index');
     Route::get('/chat/{session}',[ChatSession::class,'show'])->name('chat.show');
+    Route::get('/community', [UserSubmissionController::class, 'index'])->name('submissions.index');
+    Route::post('/community', [UserSubmissionController::class, 'store'])->name('submissions.store');
+    Route::post('/trips', [UserSavedTripsController::class, 'store'])->name('trips.store');
+    Route::get('/trips/{id}', [UserSavedTripsController::class, 'show'])->name('trips.show');
+    Route::delete('/trips/{id}', [UserSavedTripsController::class, 'destroy'])->name('trips.destroy');
 });
