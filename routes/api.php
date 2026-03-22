@@ -18,8 +18,3 @@ use App\Http\Controllers\User\ChatApiController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::middleware('auth:sanctum')->group(function() {
-    Route::post('/chat',[ChatApiController::class,'stream'])->name('api.chat.stream');
-    Route::get('/chat/history/{id}',[ChatApiController::class,'history'])->name('api.chat.history');
-});

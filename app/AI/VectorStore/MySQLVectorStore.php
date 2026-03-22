@@ -79,7 +79,7 @@ final class MySQLVectorStore
                 'source_type' => $doc['source_type'],
                 'source_id'   => $doc['source_id'],
                 'content'     => $doc['content'],
-                'embedding'   => $vectors[$i] ?? array_fill(0, 768, 0.0),
+                'embedding'   => $vectors[$i] ?? array_fill(0, 3072, 0.0),
                 'metadata'    => $doc['metadata'] ?? [],
                 'chunk_hash'  => hash('sha256', $doc['content']),
             ]);

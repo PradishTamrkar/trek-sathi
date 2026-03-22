@@ -35,7 +35,7 @@ class AIServiceProvider extends ServiceProvider
             return new TrekSathiAgent(
                 embedder:$app->make(GeminiEmbeddingProvider::class),
                 vectorStore:$app->make(MySQLVectorStore::class),
-                geminiKey:config('services.gemini_key')
+                geminiKey:config('services.gemini.key')
             );
         });
     }

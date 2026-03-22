@@ -14,10 +14,9 @@ use Illuminate\Support\Facades\Log;
  */
 final class GeminiEmbeddingProvider
 {
-    private const ENDPOINT  = 'https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent';
-    private const BATCH_URL = 'https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents';
-    private const DIMS      = 768;
-
+    private const ENDPOINT  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent';
+    private const BATCH_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents';
+    private const DIMS      = 3072;
     private Client $http;
 
     public function __construct(private readonly string $apiKey)

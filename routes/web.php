@@ -19,6 +19,7 @@ use App\Http\Controllers\User\UserTrekkingRouteController;
 use App\Http\Controllers\User\UserContactController;
 use App\Http\Controllers\User\UserSubmissionController;
 use App\Http\Controllers\User\UserSavedTripsController;
+use App\Http\Controllers\User\ChatApiController;
 use App\Models\ChatSession;
 use Illuminate\Support\Facades\Route;
 
@@ -64,67 +65,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teaHouses/{id}',[UserTeaHouseController::class,'show'])->name('teaHouse.show');
     Route::get('/chat',[ChatController::class,'index'])->name('chat.index');
     Route::get('/chat/{session}',[ChatController::class,'show'])->name('chat.show');
+    Route::post('/api/chat', [ChatApiController::class, 'stream'])->name('api.chat.stream');
+    Route::get('/api/chat/history/{id}', [ChatApiController::class, 'history'])->name('api.chat.history');
     Route::get('/community', [UserSubmissionController::class, 'index'])->name('submissions.index');
     Route::post('/community', [UserSubmissionController::class, 'store'])->name('submissions.store');
     Route::post('/trips', [UserSavedTripsController::class, 'store'])->name('trips.store');
     Route::get('/trips/{id}', [UserSavedTripsController::class, 'show'])->name('trips.show');
     Route::delete('/trips/{id}', [UserSavedTripsController::class, 'destroy'])->name('trips.destroy');
 });
-
-Route::get('/test-gemini', function () {
-    // Step 1 — check the key is even loaded
-    $key = config('services.gemini.key');
-
-    if (!$key) {
-        return response()->json(['error' => 'GEMINI_API_KEY is not set in config']);
-    }
-
-    // Step 2 — make the API call manually so we can see the raw error
-    try {
-        $http = new \GuzzleHttp\Client(['timeout' => 30]);
-
-        $response = $http->post(
-            'https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=' . $key,
-            [
-                'json' => [
-                    'model'    => 'models/text-embedding-004',
-                    'content'  => ['parts' => [['text' => 'Everest Base Camp trek']]],
-                    'taskType' => 'RETRIEVAL_DOCUMENT',
-                ],
-            ]
-        );
-
-        $body = json_decode((string) $response->getBody(), true);
-
-        $vector = $body['embedding']['values'] ?? [];
-
-        return response()->json([
-            'key_prefix'  => substr($key, 0, 8) . '...',   // confirm which key is loaded
-            'dims'        => count($vector),
-            'first_5'     => array_slice($vector, 0, 5),
-            'raw_keys'    => array_keys($body),             // what did the API actually return?
-        ]);
-
-    } catch (\GuzzleHttp\Exception\ClientException $e) {
-        // 4xx error — bad key, wrong model name, etc.
-        return response()->json([
-            'error'    => '4xx from Gemini',
-            'status'   => $e->getResponse()->getStatusCode(),
-            'body'     => json_decode((string) $e->getResponse()->getBody(), true),
-        ]);
-
-    } catch (\GuzzleHttp\Exception\ServerException $e) {
-        // 5xx error — Gemini is down
-        return response()->json([
-            'error'  => '5xx from Gemini',
-            'status' => $e->getResponse()->getStatusCode(),
-        ]);
-
-    } catch (\Exception $e) {
-        // Network error, timeout, etc.
-        return response()->json([
-            'error'   => get_class($e),
-            'message' => $e->getMessage(),
-        ]);
-    }
-})->middleware('auth');

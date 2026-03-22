@@ -103,7 +103,7 @@ class ChatApiController extends Controller
     }
 
     //Helper functons
-    private function resolveSession(int $userId, ?int $sessionId)//: ChatSession
+    private function resolveSession(int $userId, ?int $sessionId): ChatSession
     {
         if($sessionId){
             $session=ChatSession::where('id',$sessionId)
@@ -113,12 +113,11 @@ class ChatApiController extends Controller
             if($session){
                 return $session;
             }
-
-            return ChatSession::create([
+        }
+         return ChatSession::create([
                 'user_id'=>$userId,
                 'title'=>'New Chat',
-            ]);
-        }
+        ]);
     }
 
     //write a single server sent evernt (SSE) and flush output buffer

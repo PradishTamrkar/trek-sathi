@@ -22,14 +22,14 @@ class IndexKnowledgeBase extends Command
 {
 
     protected $signature = 'kb:index
-        {--force:Clear and re-index all embeddings}
-        {--source-all:Source to index all}
-        {--dry-run:Show what would be indexed without writing}';
+        {--force : Clear and re-index all embeddings}
+        {--source=all : Source to index (all|kb|routes|days|teahouses)}
+        {--dry-run : Show what would be indexed without writing}';
 
     protected $description = 'Run the RAG data ingestion pipeline (KnowledgeBase → embed → vector store)';
 
     public function __construct(
-        private readonly MySQLVectorStore $vectoreStore,
+        private readonly MySQLVectorStore $vectorStore,
         private readonly TextChunker $chunker
     )
     {
@@ -38,8 +38,8 @@ class IndexKnowledgeBase extends Command
 
     public function handle(): int
     {
-        $source=$this->options('source');
-        $force=$this->options('force');
+        $source=$this->option('source');
+        $force=$this->option('force');
         $dry=$this->option('dry-run');
 
         if($force && !$dry){
@@ -62,6 +62,10 @@ class IndexKnowledgeBase extends Command
 
         if(in_array($source, ['all','days'])){
             $total += $this->indexRouteDays($dry);
+        }
+
+        if(in_array($source, ['all','teahouses'])){
+            $total += $this->indexTeaHouses($dry);
         }
 
         $this->newLine();
@@ -102,9 +106,9 @@ class IndexKnowledgeBase extends Command
                         'route_id'=>$entry->trekking_route_id,
                     ],
                 ], $chunks);
-                $this->vectoreStore->addDocumentBatch($docs);
+                $this->vectorStore->addDocumentBatch($docs);
 
-                $entry->update(['is_indexed',true]);
+                $entry->update(['is_indexed'=>true]);
             }
 
             $count+=count($chunks);
@@ -142,9 +146,9 @@ class IndexKnowledgeBase extends Command
 
             $chunks = $this->chunker->split($text);
 
-            if($dry){
+            if(!$dry){
                 foreach($chunks as $chunk){
-                    $this->vectoreStore->addDocument(
+                    $this->vectorStore->addDocument(
                         'trekking_route',
                         $route->id,
                         $chunk,
@@ -184,8 +188,8 @@ class IndexKnowledgeBase extends Command
                 $day->days_description,
             ]);
 
-            if(!$day){
-                $this->vectoreStore->addDocument(
+            if(!$dry){
+                $this->vectorStore->addDocument(
                     'route_day',
                     $day->id,
                     $text,
@@ -228,7 +232,7 @@ class IndexKnowledgeBase extends Command
             ]));
 
             if(!$dry){
-                $this->vectoreStore->addDocument(
+                $this->vectorStore->addDocument(
                     'tea_house',
                     $house->id,
                     $text,

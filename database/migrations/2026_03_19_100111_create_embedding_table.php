@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('embedding', function (Blueprint $table) {
+        Schema::create('embeddings', function (Blueprint $table) {
             $table->id();
             $table->string('source_type');
             $table->unsignedBigInteger('source_id');
@@ -20,7 +20,6 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->string('chunk_hash',64)->unique();
             $table->timestamps();
-
             $table->index(['source_type','source_id'],'idx_source');
         });
     }
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('embedding');
+        Schema::dropIfExists('embeddings');
     }
 };
