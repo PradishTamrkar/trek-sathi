@@ -1,25 +1,26 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Head, usePage, router, useForm } from '@inertiajs/react';
 import {
     Box, Typography, Button, IconButton, Paper,
     TextField, useTheme, useMediaQuery, Dialog, DialogTitle,
     DialogContent, DialogActions, Divider, Alert, Snackbar,
     FormControl, InputLabel, Select, MenuItem, FormHelperText,
-    Chip,
+    Chip, CircularProgress,
 } from '@mui/material';
-import ChevronLeftIcon  from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import SendIcon         from '@mui/icons-material/Send';
-import TerrainIcon      from '@mui/icons-material/Terrain';
-import BookmarkIcon     from '@mui/icons-material/Bookmark';
+import ChevronLeftIcon    from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon   from '@mui/icons-material/ChevronRight';
+import SendIcon           from '@mui/icons-material/Send';
+import TerrainIcon        from '@mui/icons-material/Terrain';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import Navbar           from '../../Components/User/Navbar';
+import BookmarkIcon       from '@mui/icons-material/Bookmark';
+import StopIcon           from '@mui/icons-material/Stop';
+import Navbar             from '../../Components/User/Navbar';
 import UserSidebar, { SIDEBAR_W } from '../../Components/User/UserSidebar';
 
 // ── Suggestion chips ──────────────────────────────────────────────────────────
 const SUGGESTIONS = [
     '🏔️ Plan an Everest Base Camp trek for October',
-    '🗺️ What\'s the best season for Annapurna Circuit?',
+    '🗺️ Best season for Annapurna Circuit?',
     '📋 What permits do I need for Langtang?',
     '🏠 Recommend tea houses along EBC route',
     '💪 I\'m a beginner — which route suits me?',
@@ -62,6 +63,39 @@ function EmptyState({ onSuggestionClick }) {
     );
 }
 
+// ── Markdown-ish renderer for assistant messages ──────────────────────────────
+function MessageContent({ content }) {
+    const lines = content.split('\n');
+    return (
+        <Box>
+            {lines.map((line, i) => {
+                if (line.startsWith('### ')) return (
+                    <Typography key={i} variant="body2" fontWeight={700} sx={{ mt: 1, mb: 0.5, fontSize: '0.9rem' }}>
+                        {line.slice(4)}
+                    </Typography>
+                );
+                if (line.startsWith('## ')) return (
+                    <Typography key={i} variant="body2" fontWeight={700} sx={{ mt: 1.5, mb: 0.5, fontSize: '0.95rem' }}>
+                        {line.slice(3)}
+                    </Typography>
+                );
+                if (line.startsWith('- ') || line.startsWith('* ')) return (
+                    <Box key={i} sx={{ display: 'flex', gap: 0.75, mb: 0.25 }}>
+                        <Typography variant="body2" color="text.disabled">•</Typography>
+                        <Typography variant="body2" sx={{ lineHeight: 1.7 }}>{line.slice(2)}</Typography>
+                    </Box>
+                );
+                if (line === '') return <Box key={i} sx={{ height: 8 }} />;
+                return (
+                    <Typography key={i} variant="body2" sx={{ lineHeight: 1.7 }}>
+                        {line.replace(/\*\*(.*?)\*\*/g, '').replace(/\*(.*?)\*/g, '')}
+                    </Typography>
+                );
+            })}
+        </Box>
+    );
+}
+
 // ── Save Trip Dialog ──────────────────────────────────────────────────────────
 function SaveTripDialog({ open, onClose, trekkingRoutes, messages }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -72,8 +106,6 @@ function SaveTripDialog({ open, onClose, trekkingRoutes, messages }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Build a simple itinerary_json from the conversation
-        // When AI is integrated, this will be structured data from the AI response
         const itinerary = {
             overview: messages
                 .filter(m => m.role === 'assistant')
@@ -84,7 +116,6 @@ function SaveTripDialog({ open, onClose, trekkingRoutes, messages }) {
             messages_count: messages.length,
             saved_at: new Date().toISOString(),
         };
-
         post(route('trips.store'), {
             data: {
                 trekking_route_id: data.trekking_route_id,
@@ -95,32 +126,22 @@ function SaveTripDialog({ open, onClose, trekkingRoutes, messages }) {
         });
     };
 
-    const handleClose = () => { reset(); onClose(false); };
-
     return (
-        <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth
+        <Dialog open={open} onClose={() => { reset(); onClose(false); }} maxWidth="xs" fullWidth
             PaperProps={{ sx: { borderRadius: 3 } }}>
             <DialogTitle sx={{ pb: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BookmarkIcon sx={{ color: 'primary.main', fontSize: 20 }} />
                     <Typography variant="h6" fontWeight={700}>Save This Trip Plan</Typography>
                 </Box>
-                <Typography variant="caption" color="text.secondary">
-                    Save the conversation to your trip list to review anytime.
-                </Typography>
             </DialogTitle>
             <Divider />
             <Box component="form" onSubmit={handleSubmit}>
                 <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 2.5 }}>
-                    <TextField
-                        label="Trip Name"
-                        value={data.trip_title}
+                    <TextField label="Trip Name" value={data.trip_title}
                         onChange={e => setData('trip_title', e.target.value)}
-                        error={!!errors.trip_title}
-                        helperText={errors.trip_title}
-                        required autoFocus
-                        placeholder="e.g. My EBC Trek — October 2025"
-                    />
+                        error={!!errors.trip_title} helperText={errors.trip_title}
+                        required autoFocus placeholder="e.g. My EBC Trek — October 2025" />
                     <FormControl fullWidth size="small" error={!!errors.trekking_route_id} required>
                         <InputLabel>Trekking Route</InputLabel>
                         <Select label="Trekking Route" value={data.trekking_route_id}
@@ -131,14 +152,10 @@ function SaveTripDialog({ open, onClose, trekkingRoutes, messages }) {
                         </Select>
                         {errors.trekking_route_id && <FormHelperText>{errors.trekking_route_id}</FormHelperText>}
                     </FormControl>
-                    <Alert severity="info" sx={{ borderRadius: 2, fontSize: '0.8rem' }}>
-                        The AI conversation will be saved and linked to your trip plan. Once AI is fully integrated,
-                        structured itinerary data will be saved automatically.
-                    </Alert>
                 </DialogContent>
                 <Divider />
                 <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-                    <Button onClick={handleClose} color="inherit" disabled={processing}>Cancel</Button>
+                    <Button onClick={() => { reset(); onClose(false); }} color="inherit" disabled={processing}>Cancel</Button>
                     <Button type="submit" variant="contained" startIcon={<BookmarkIcon />} disabled={processing}>
                         {processing ? 'Saving…' : 'Save Trip'}
                     </Button>
@@ -148,49 +165,132 @@ function SaveTripDialog({ open, onClose, trekkingRoutes, messages }) {
     );
 }
 
-// ── Main chat page ────────────────────────────────────────────────────────────
-export default function Chat({ sessionId = null, chatSessions = [], savedTrips = [], trekkingRoutes = [] }) {
+// ── Main Chat Page ────────────────────────────────────────────────────────────
+export default function Chat({
+    sessionId     = null,
+    messages:     initialMessages = [],
+    chatSessions  = [],
+    savedTrips    = [],
+    trekkingRoutes = [],
+}) {
     const { auth, flash } = usePage().props;
     const user     = auth?.user;
     const theme    = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    const [sidebarOpen,  setSidebarOpen]  = useState(true);
-    const [input,        setInput]        = useState('');
-    const [messages,     setMessages]     = useState([]);
-    const [loading,      setLoading]      = useState(false);
-    const [saveDialog,   setSaveDialog]   = useState(false);
-    const [snackbar,     setSnackbar]     = useState(!!flash?.success);
-    const [savedMsg,     setSavedMsg]     = useState('');
+    // Hydrate from server-side messages (when resuming a session)
+    const [messages,    setMessages]    = useState(initialMessages ?? []);
+    const [input,       setInput]       = useState('');
+    const [streaming,   setStreaming]   = useState(false);
+    const [activeId,    setActiveId]    = useState(sessionId);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [saveDialog,  setSaveDialog]  = useState(false);
+    const [snackbar,    setSnackbar]    = useState(!!flash?.success);
+    const [savedMsg,    setSavedMsg]    = useState('');
 
+    const abortRef   = useRef(null);
+    const bottomRef  = useRef(null);
     const hasMessages = messages.length > 0;
 
-    const handleSend = (text) => {
+    // Scroll to bottom on new messages
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // ── Send message ──────────────────────────────────────────────────────────
+    const handleSend = useCallback(async (text) => {
         const content = (text ?? input).trim();
-        if (!content || loading) return;
+        if (!content || streaming) return;
+
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', content }]);
-        setLoading(true);
-        // TODO: replace with real streaming API call
-        setTimeout(() => {
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: '🚧 AI chat is coming soon! The backend streaming endpoint is being set up. Your message was received.',
-            }]);
-            setLoading(false);
-        }, 800);
+        setMessages(prev => [...prev, { role: 'user', content, id: Date.now() }]);
+        setStreaming(true);
+
+        // Optimistic assistant placeholder
+        const placeholderId = Date.now() + 1;
+        setMessages(prev => [...prev, { role: 'assistant', content: '', id: placeholderId, streaming: true }]);
+
+        try {
+            const controller = new AbortController();
+            abortRef.current = controller;
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    'Accept': 'text/event-stream',
+                },
+                body: JSON.stringify({
+                    message:    content,
+                    session_id: activeId,
+                }),
+                signal: controller.signal,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const reader  = response.body.getReader();
+            const decoder = new TextDecoder();
+            let   buffer  = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();                          // incomplete last line
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+
+                    const payload = JSON.parse(line.slice(6));
+
+                    if (payload.type === 'chunk') {
+                        setMessages(prev => prev.map(m =>
+                            m.id === placeholderId
+                                ? { ...m, content: m.content + payload.text }
+                                : m
+                        ));
+                    }
+
+                    if (payload.type === 'done') {
+                        setActiveId(payload.session_id);
+                        setMessages(prev => prev.map(m =>
+                            m.id === placeholderId ? { ...m, streaming: false } : m
+                        ));
+                    }
+
+                    if (payload.type === 'error') {
+                        throw new Error(payload.message);
+                    }
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                setMessages(prev => prev.map(m =>
+                    m.id === Date.now() + 1
+                        ? { ...m, content: 'Sorry, something went wrong. Please try again.', streaming: false }
+                        : m
+                ));
+            }
+        } finally {
+            setStreaming(false);
+            abortRef.current = null;
+        }
+    }, [input, streaming, activeId]);
+
+    const handleStop = () => {
+        abortRef.current?.abort();
+        setStreaming(false);
+        setMessages(prev => prev.map(m => ({ ...m, streaming: false })));
     };
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-    };
-
-    const handleSaveClose = (saved) => {
-        setSaveDialog(false);
-        if (saved) {
-            setSavedMsg('Trip saved! Find it in your sidebar under Saved Trips.');
-            setSnackbar(true);
-        }
     };
 
     return (
@@ -205,7 +305,7 @@ export default function Chat({ sessionId = null, chatSessions = [], savedTrips =
                         chatSessions={chatSessions}
                         savedTrips={savedTrips}
                         activePage="chat"
-                        activeSessionId={sessionId}
+                        activeSessionId={activeId}
                     />
 
                     {/* Sidebar toggle */}
@@ -231,20 +331,16 @@ export default function Chat({ sessionId = null, chatSessions = [], savedTrips =
                         ml: (!isMobile && sidebarOpen) ? `${SIDEBAR_W}px` : 0,
                         transition: 'margin-left 0.25s ease',
                     }}>
-                        {/* Chat toolbar — only shows when there are messages */}
+                        {/* Toolbar */}
                         {hasMessages && user && (
                             <Box sx={{
                                 display: 'flex', justifyContent: 'flex-end',
                                 px: { xs: 2, md: 6 }, py: 1.5,
-                                borderBottom: '1px solid', borderColor: 'divider',
-                                bgcolor: 'white',
+                                borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'white',
                             }}>
-                                <Button
-                                    size="small"
-                                    variant="outlined"
+                                <Button size="small" variant="outlined"
                                     startIcon={<BookmarkBorderIcon />}
-                                    onClick={() => setSaveDialog(true)}
-                                    sx={{ borderRadius: 2 }}>
+                                    onClick={() => setSaveDialog(true)} sx={{ borderRadius: 2 }}>
                                     Save This Trip Plan
                                 </Button>
                             </Box>
@@ -258,8 +354,8 @@ export default function Chat({ sessionId = null, chatSessions = [], savedTrips =
                                 flex: 1, overflowY: 'auto', px: { xs: 2, md: 6 }, py: 3,
                                 display: 'flex', flexDirection: 'column', gap: 3,
                             }}>
-                                {messages.map((msg, i) => (
-                                    <Box key={i} sx={{
+                                {messages.map((msg) => (
+                                    <Box key={msg.id ?? Math.random()} sx={{
                                         display: 'flex',
                                         justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
                                     }}>
@@ -280,39 +376,43 @@ export default function Chat({ sessionId = null, chatSessions = [], savedTrips =
                                             borderTopRightRadius: msg.role === 'user' ? 4 : 24,
                                             borderTopLeftRadius:  msg.role === 'assistant' ? 4 : 24,
                                         }}>
-                                            <Typography variant="body2" sx={{
-                                                color: msg.role === 'user' ? 'white' : 'text.primary',
-                                                lineHeight: 1.7, whiteSpace: 'pre-wrap',
-                                            }}>
-                                                {msg.content}
-                                            </Typography>
+                                            {msg.role === 'user' ? (
+                                                <Typography variant="body2" sx={{ color: 'white', lineHeight: 1.7 }}>
+                                                    {msg.content}
+                                                </Typography>
+                                            ) : (
+                                                <>
+                                                    {msg.content ? (
+                                                        <MessageContent content={msg.content} />
+                                                    ) : (
+                                                        /* typing indicator */
+                                                        <Box sx={{ display: 'flex', gap: 0.5, py: 0.5 }}>
+                                                            {[0, 1, 2].map(i => (
+                                                                <Box key={i} sx={{
+                                                                    width: 7, height: 7, borderRadius: '50%', bgcolor: 'primary.main',
+                                                                    animation: 'pulse 1.2s ease-in-out infinite',
+                                                                    animationDelay: `${i * 0.2}s`,
+                                                                    '@keyframes pulse': {
+                                                                        '0%,80%,100%': { opacity: 0.2, transform: 'scale(0.8)' },
+                                                                        '40%': { opacity: 1, transform: 'scale(1)' },
+                                                                    },
+                                                                }} />
+                                                            ))}
+                                                        </Box>
+                                                    )}
+                                                    {msg.streaming && msg.content && (
+                                                        <Box sx={{ width: 8, height: 16, bgcolor: 'primary.main',
+                                                            display: 'inline-block', ml: 0.25, mb: '-3px',
+                                                            animation: 'blink 0.8s step-end infinite',
+                                                            '@keyframes blink': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0 } },
+                                                        }} />
+                                                    )}
+                                                </>
+                                            )}
                                         </Paper>
                                     </Box>
                                 ))}
-                                {loading && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Box sx={{
-                                            width: 32, height: 32, borderRadius: 1.5,
-                                            background: 'linear-gradient(135deg, #1b5e20, #2e7d32)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        }}>
-                                            <TerrainIcon sx={{ fontSize: 16, color: 'white' }} />
-                                        </Box>
-                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                            {[0, 1, 2].map(i => (
-                                                <Box key={i} sx={{
-                                                    width: 7, height: 7, borderRadius: '50%', bgcolor: 'primary.main',
-                                                    animation: 'pulse 1.2s ease-in-out infinite',
-                                                    animationDelay: `${i * 0.2}s`,
-                                                    '@keyframes pulse': {
-                                                        '0%,80%,100%': { opacity: 0.2, transform: 'scale(0.8)' },
-                                                        '40%': { opacity: 1, transform: 'scale(1)' },
-                                                    },
-                                                }} />
-                                            ))}
-                                        </Box>
-                                    </Box>
-                                )}
+                                <div ref={bottomRef} />
                             </Box>
                         )}
 
@@ -322,43 +422,50 @@ export default function Chat({ sessionId = null, chatSessions = [], savedTrips =
                             borderTop: '1px solid', borderColor: 'divider', bgcolor: 'white',
                         }}>
                             <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-end', maxWidth: 800, mx: 'auto' }}>
-                                <TextField
-                                    fullWidth multiline maxRows={4}
+                                <TextField fullWidth multiline maxRows={4}
                                     placeholder="Ask about any Nepal trek — routes, permits, seasons, gear…"
                                     value={input}
                                     onChange={e => setInput(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    disabled={loading}
+                                    disabled={streaming}
                                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'grey.50' } }}
                                 />
-                                <IconButton
-                                    onClick={() => handleSend()}
-                                    disabled={!input.trim() || loading}
-                                    sx={{
+                                {streaming ? (
+                                    <IconButton onClick={handleStop} sx={{
                                         width: 48, height: 48, flexShrink: 0,
-                                        bgcolor: input.trim() && !loading ? 'primary.main' : 'grey.200',
-                                        color: input.trim() && !loading ? 'white' : 'text.disabled',
+                                        bgcolor: 'error.main', color: 'white', borderRadius: 2.5,
+                                        '&:hover': { bgcolor: 'error.dark' },
+                                    }}>
+                                        <StopIcon fontSize="small" />
+                                    </IconButton>
+                                ) : (
+                                    <IconButton onClick={() => handleSend()} disabled={!input.trim()} sx={{
+                                        width: 48, height: 48, flexShrink: 0,
+                                        bgcolor: input.trim() ? 'primary.main' : 'grey.200',
+                                        color: input.trim() ? 'white' : 'text.disabled',
                                         borderRadius: 2.5, transition: 'all 0.2s',
                                         '&:hover': { bgcolor: input.trim() ? 'primary.dark' : 'grey.200' },
                                         '&:disabled': { bgcolor: 'grey.200', color: 'text.disabled' },
                                     }}>
-                                    <SendIcon fontSize="small" />
-                                </IconButton>
+                                        <SendIcon fontSize="small" />
+                                    </IconButton>
+                                )}
                             </Box>
                             <Typography variant="caption" color="text.disabled"
                                 sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
-                                Press Enter to send · Shift+Enter for new line
-                                {hasMessages && user && ' · Click "Save This Trip Plan" to save to your trips'}
+                                Press Enter to send · Shift+Enter for new line · Powered by Gemini + RAG
                             </Typography>
                         </Box>
                     </Box>
                 </Box>
             </Box>
 
-            {/* Save trip dialog */}
             <SaveTripDialog
                 open={saveDialog}
-                onClose={handleSaveClose}
+                onClose={(saved) => {
+                    setSaveDialog(false);
+                    if (saved) { setSavedMsg('Trip saved!'); setSnackbar(true); }
+                }}
                 trekkingRoutes={trekkingRoutes}
                 messages={messages}
             />

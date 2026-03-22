@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\User\ChatApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,4 +17,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::middleware('auth:sanctum')->group(function() {
+    Route::post('/chat',[ChatApiController::class,'stream'])->name('api.chat.stream');
+    Route::get('/chat/history/{id}',[ChatApiController::class,'history'])->name('api.chat.history');
 });
