@@ -13,7 +13,7 @@ class AdminKnowledgeBaseContoller extends Controller
     public function index()
     {
         return Inertia::render('Admin/KnowledgeBases/Index',[
-            'entries'=>KnowledgeBase::with('TrekkingRoute:id, trekking_route_name')
+            'entries'=>KnowledgeBase::with('TrekkingRoutes:id, trekking_route_name')
                 ->latest()
                 ->get(),
             'routes'=>TrekkingRoute::orderBy('trekking_route_name')

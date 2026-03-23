@@ -2,264 +2,214 @@
 
 namespace App\AI;
 
-use App\AI\Providers\GeminiEmbeddingProvider;
-use App\AI\VectorStore\MySQLVectorStore;
-use App\Models\ChatMessage;
 use App\Models\ChatSession;
+use App\AI\VectorStore\MySQLVectorStore;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
-/**
- * TrekSathi RAG Agent
- *
- * Orchestrates the full retrieval-augmented generation pipeline:
- *   1. Embed the user query
- *   2. Retrieve top-k relevant KB chunks
- *   3. Build a grounded system prompt
- *   4. Stream the Gemini 1.5 Flash response token-by-token via SSE
- *
- * We call the Gemini REST API directly so streaming works without any
- * third-party SDK quirks.  NeuronAI's VectorStore interface is satisfied
- * by MySQLVectorStore.
- */
-final class TrekSathiAgent
+class TrekSathiAgent
 {
-    private const GEMINI_STREAM_URL =
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent';
+    const GROQ_URL        = 'https://api.groq.com/openai/v1/chat/completions';
+    const CHAT_MODEL      = 'llama-3.3-70b-versatile';
+    const TITLE_MODEL     = 'llama-3.1-8b-instant'; // faster/cheaper for titles
+    const MAX_HISTORY     = 12;
 
-    private const GEMINI_URL =
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    private Client $client;
+    private MySQLVectorStore $vectorStore;
+    private string $apiKey;
 
-    private Client $http;
-
-    public function __construct(
-        private readonly GeminiEmbeddingProvider $embedder,
-        private readonly MySQLVectorStore        $vectorStore,
-        private readonly string                  $geminiKey
-    ) {
-        $this->http = new Client(['timeout' => 120, 'stream' => true]);
+    public function __construct(MySQLVectorStore $vectorStore)
+    {
+        $this->vectorStore = $vectorStore;
+        $this->apiKey      = config('services.groq.key');
+        $this->client      = new Client(['timeout' => 60]);
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
-
     /**
-     * Stream a response via Server-Sent Events.
-     *
-     * @param  string              $userMessage
-     * @param  ChatSession         $session
-     * @param  callable            $onChunk      fn(string $text): void
-     * @param  callable|null       $onDone       fn(string $fullResponse): void
+     * Stream a response to the user, calling $onChunk for each text delta
+     * and $onDone when the stream is complete.
      */
     public function streamResponse(
-        string      $userMessage,
+        string $userMessage,
         ChatSession $session,
-        callable    $onChunk,
-        ?callable   $onDone = null
+        callable $onChunk,
+        callable $onDone
     ): void {
-        // 1. Retrieve relevant context
-        $context = $this->retrieveContext($userMessage);
-
-        // 2. Build conversation history
-        $history = $this->buildHistory($session, $userMessage);
-
-        // 3. Build Gemini request
-        $payload = $this->buildPayload($history, $context);
-
-        // 4. Stream & collect
-        $fullResponse = '';
-
         try {
-            $response = $this->http->post(
-                self::GEMINI_STREAM_URL . '?key=' . $this->geminiKey . '&alt=sse',
-                ['json' => $payload]
-            );
+            // 1. Retrieve relevant context from vector store
+            $context = $this->retrieveContext($userMessage);
 
-            $body = $response->getBody();
+            // 2. Build message array
+            $messages = $this->buildMessages($userMessage, $session, $context);
+
+            // 3. Stream from Groq
+            $response = $this->client->post(self::GROQ_URL, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json' => [
+                    'model'       => self::CHAT_MODEL,
+                    'messages'    => $messages,
+                    'stream'      => true,
+                    'temperature' => config('ai.temperature', 0.7),
+                    'max_tokens'  => config('ai.max_tokens', 1024),
+                ],
+                'stream' => true,
+            ]);
+
+            $body        = $response->getBody();
+            $fullText    = '';
+            $buffer      = '';
 
             while (!$body->eof()) {
-                $line = trim($body->read(4096));
+                $buffer .= $body->read(1024);
 
-                foreach (explode("\n", $line) as $raw) {
-                    $raw = trim($raw);
+                // Process complete lines from the buffer
+                while (($pos = strpos($buffer, "\n")) !== false) {
+                    $line   = substr($buffer, 0, $pos);
+                    $buffer = substr($buffer, $pos + 1);
+                    $line   = trim($line);
 
-                    if (!str_starts_with($raw, 'data:')) {
+                    if ($line === '' || $line === 'data: [DONE]') {
                         continue;
                     }
 
-                    $json = trim(substr($raw, 5));
+                    if (str_starts_with($line, 'data: ')) {
+                        $json = substr($line, 6);
+                        $data = json_decode($json, true);
 
-                    if ($json === '[DONE]') {
-                        break 2;
-                    }
-
-                    $decoded = json_decode($json, true);
-                    $chunk   = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
-
-                    if ($chunk !== '') {
-                        $fullResponse .= $chunk;
-                        $onChunk($chunk);
+                        $delta = $data['choices'][0]['delta']['content'] ?? null;
+                        if ($delta !== null) {
+                            $fullText .= $delta;
+                            $onChunk($delta);
+                        }
                     }
                 }
             }
-        } catch (GuzzleException $e) {
-            Log::error('[TrekSathiAgent] Stream error', ['error' => $e->getMessage()]);
-            $errMsg = 'Sorry, I ran into an issue. Please try again.';
-            $onChunk($errMsg);
-            $fullResponse = $errMsg;
-        }
 
-        if ($onDone) {
-            $onDone($fullResponse);
+            $onDone($fullText);
+
+        } catch (RequestException $e) {
+            Log::error('[TrekSathiAgent] Stream error', ['error' => $e->getMessage()]);
+            throw $e;
         }
     }
 
     /**
-     * Non-streaming response (used for title generation, tests).
+     * Generate a short title for a new chat session.
      */
-    public function respond(string $prompt): string
+    public function generateTitle(string $firstMessage): ?string
     {
         try {
-            $response = $this->http->post(
-                self::GEMINI_URL . '?key=' . $this->geminiKey,
-                [
-                    'json' => [
-                        'contents'         => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
-                        'generationConfig' => ['maxOutputTokens' => 256, 'temperature' => 0.3],
+            $response = $this->client->post(self::GROQ_URL, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json' => [
+                    'model'      => self::TITLE_MODEL,
+                    'messages'   => [
+                        [
+                            'role'    => 'system',
+                            'content' => 'Generate a concise 4-6 word title for a trekking chat based on the user\'s first message. Return only the title, no punctuation, no quotes.',
+                        ],
+                        [
+                            'role'    => 'user',
+                            'content' => $firstMessage,
+                        ],
                     ],
-                ]
-            );
+                    'max_tokens'  => 20,
+                    'temperature' => 0.3,
+                ],
+            ]);
 
-            $body = json_decode((string) $response->getBody(), true);
-            return $body['candidates'][0]['content']['parts'][0]['text'] ?? '';
-        } catch (GuzzleException $e) {
-            Log::error('[TrekSathiAgent] respond failed', ['error' => $e->getMessage()]);
-            return '';
+            $data  = json_decode($response->getBody()->getContents(), true);
+            $title = trim($data['choices'][0]['message']['content'] ?? '');
+
+            return $title ?: null;
+
+        } catch (\Exception $e) {
+            Log::warning('[TrekSathiAgent] Title generation failed', ['error' => $e->getMessage()]);
+            return null;
         }
     }
 
-    // ── Pipeline steps ────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
 
-    /** Step 1 — Retrieve top-5 KB chunks relevant to the query */
     private function retrieveContext(string $query): string
     {
-        $chunks = $this->vectorStore->similaritySearch($query, k: 5);
+        try {
+            $results = $this->vectorStore->similaritySearch($query, config('ai.top_k', 5));
 
-        if (empty($chunks)) {
-            return '';
-        }
-
-        $parts = [];
-
-        foreach ($chunks as $i => $chunk) {
-            $meta  = $chunk['metadata'];
-            $label = isset($meta['title']) ? "Source: {$meta['title']}" : "Source #" . ($i + 1);
-
-            if (!empty($meta['category'])) {
-                $label .= " [{$meta['category']}]";
+            if (empty($results)) {
+                return '';
             }
 
-            $parts[] = "---\n{$label}\n{$chunk['content']}";
-        }
+            $parts = [];
+            foreach ($results as $result) {
+                $parts[] = $result['content'];
+            }
 
-        return implode("\n\n", $parts);
+            return implode("\n\n---\n\n", $parts);
+
+        } catch (\Exception $e) {
+            Log::warning('[TrekSathiAgent] Context retrieval failed', ['error' => $e->getMessage()]);
+            return '';
+        }
     }
 
-    /** Step 2 — Load last-N messages from the session */
-    private function buildHistory(ChatSession $session, string $userMessage): array
+    private function buildMessages(string $userMessage, ChatSession $session, string $context): array
     {
-        $past = $session->messages()
-            ->latest()
-            ->take(12)          // keep 12-turn window to manage token budget
+        $systemPrompt = $this->buildSystemPrompt($context);
+
+        $messages = [['role' => 'system', 'content' => $systemPrompt]];
+
+        // Add recent chat history
+        $history = $session->messages()
+            ->orderBy('created_at', 'desc')
+            ->limit(self::MAX_HISTORY)
             ->get()
-            ->reverse()
-            ->values();
+            ->reverse();
 
-        $history = [];
-
-        foreach ($past as $msg) {
-            $history[] = [
-                'role'  => $msg->role === 'user' ? 'user' : 'model',
-                'parts' => [['text' => $msg->content]],
+        foreach ($history as $msg) {
+            $messages[] = [
+                'role'    => $msg->role === 'user' ? 'user' : 'assistant',
+                'content' => $msg->content,
             ];
         }
 
-        // Append the new user message
-        $history[] = [
-            'role'  => 'user',
-            'parts' => [['text' => $userMessage]],
-        ];
+        // Add current user message
+        $messages[] = ['role' => 'user', 'content' => $userMessage];
 
-        return $history;
-    }
-
-    /** Step 3 — Build the full Gemini API payload with system prompt + context */
-    private function buildPayload(array $history, string $context): array
-    {
-        $systemInstruction = $this->buildSystemPrompt($context);
-
-        return [
-            'system_instruction' => [
-                'parts' => [['text' => $systemInstruction]],
-            ],
-            'contents'           => $history,
-            'generationConfig'   => [
-                'temperature'     => 0.7,
-                'maxOutputTokens' => 2048,
-                'topP'            => 0.95,
-            ],
-            'safetySettings'     => [
-                ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_ONLY_HIGH'],
-                ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_ONLY_HIGH'],
-                ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-            ],
-        ];
+        return $messages;
     }
 
     private function buildSystemPrompt(string $context): string
     {
-        $contextBlock = $context
-            ? "KNOWLEDGE BASE CONTEXT (use this to answer accurately):\n\n{$context}\n\n---"
-            : "No specific knowledge base context was retrieved for this query.";
+        $base = <<<PROMPT
+You are Trek-Sathi, an expert AI trekking companion for Nepal. You help trekkers plan their journeys, understand routes, find tea houses, check difficulty levels, and stay safe in the mountains.
 
-        return <<<PROMPT
-You are TrekSathi, an expert AI trekking guide specialising in Nepal's mountain trails.
-You have deep knowledge of Himalayan treks, permits, tea houses, altitude, gear, and safety.
+You are knowledgeable about:
+- Popular trekking routes (Everest Base Camp, Annapurna Circuit, Langtang, etc.)
+- Tea houses and accommodation along routes
+- Altitude sickness prevention and acclimatization
+- Permits (TIMS, ACAP, SAGARMATHA, etc.)
+- Best trekking seasons
+- Gear and packing advice
+- Local culture and etiquette
 
-PERSONA
-- Warm, encouraging, and safety-conscious.
-- Respond in the same language the user is writing in.
-- Use markdown (bold, bullet lists, tables) for readability when helpful.
-- Always include safety notes for altitude-related questions.
-
-ANSWERING RULES
-1. Prioritise the KNOWLEDGE BASE CONTEXT below when it is relevant.
-2. If the context doesn't fully answer the question, use your general Nepal trekking knowledge.
-3. Be honest when you're uncertain — suggest the user verify with official Nepal Tourism Board sources.
-4. Never make up permit prices, distances, or altitudes. Say "verify current prices" instead.
-5. For medical/health emergencies, always recommend consulting a doctor and descending immediately.
-
-{$contextBlock}
-
-Always end itinerary responses with a brief reminder about travel insurance and acclimatisation days.
+Always be encouraging, practical, and safety-conscious. If you don't know something specific, say so honestly.
 PROMPT;
-    }
 
-    // ── Session title ─────────────────────────────────────────────────────────
+        if (!empty($context)) {
+            $base .= "\n\n## Relevant information from Trek-Sathi knowledge base:\n\n" . $context;
+            $base .= "\n\nUse the above information to give accurate, specific answers about these routes and locations.";
+        }
 
-    /**
-     * Generate a short, descriptive title for a new chat session
-     * based on the user's first message.
-     */
-    public function generateTitle(string $firstMessage): string
-    {
-        $title = $this->respond(
-            "Generate a short 4-6 word title for a trekking chat that started with: \"{$firstMessage}\". " .
-            "Return ONLY the title, no quotes, no punctuation at the end."
-        );
-
-        return $title ?: Str::limit($firstMessage, 50);
+        return $base;
     }
 }

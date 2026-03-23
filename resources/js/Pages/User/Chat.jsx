@@ -178,6 +178,7 @@ export default function Chat({
     const theme    = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+
     // Hydrate from server-side messages (when resuming a session)
     const [messages,    setMessages]    = useState(initialMessages ?? []);
     const [input,       setInput]       = useState('');
@@ -197,91 +198,89 @@ export default function Chat({
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // ── Send message ──────────────────────────────────────────────────────────
-    const handleSend = useCallback(async (text) => {
-        const content = (text ?? input).trim();
-        if (!content || streaming) return;
+    // Send message
+    const msgIdRef = useRef(1);
 
-        setInput('');
-        setMessages(prev => [...prev, { role: 'user', content, id: Date.now() }]);
-        setStreaming(true);
+const handleSend = useCallback(async (text) => {
+    const content = (text ?? input).trim();
+    if (!content || streaming) return;
 
-        // Optimistic assistant placeholder
-        const placeholderId = Date.now() + 1;
-        setMessages(prev => [...prev, { role: 'assistant', content: '', id: placeholderId, streaming: true }]);
+    setInput('');
+    setStreaming(true);
 
-        try {
-            const controller = new AbortController();
-            abortRef.current = controller;
+    const userMsgId     = msgIdRef.current++;
+    const placeholderId = msgIdRef.current++;
 
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                    'Accept': 'text/event-stream',
-                },
-                body: JSON.stringify({
-                    message:    content,
-                    session_id: activeId,
-                }),
-                signal: controller.signal,
-            });
+    // Add user message
+    setMessages(prev => [...prev, { role: 'user', content, id: userMsgId }]);
+    // Add assistant placeholder
+    setMessages(prev => [...prev, { role: 'assistant', content: '', id: placeholderId, streaming: true }]);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+    try {
+        const controller = new AbortController();
+        abortRef.current = controller;
 
-            const reader  = response.body.getReader();
-            const decoder = new TextDecoder();
-            let   buffer  = '';
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'Accept': 'text/event-stream',
+            },
+            body: JSON.stringify({
+                message:    content,
+                session_id: activeId,
+            }),
+            signal: controller.signal,
+        });
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop();                          // incomplete last line
+        const reader  = response.body.getReader();
+        const decoder = new TextDecoder();
+        let   buffer  = '';
 
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-                    const payload = JSON.parse(line.slice(6));
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
 
-                    if (payload.type === 'chunk') {
-                        setMessages(prev => prev.map(m =>
-                            m.id === placeholderId
-                                ? { ...m, content: m.content + payload.text }
-                                : m
-                        ));
-                    }
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const payload = JSON.parse(line.slice(6));
 
-                    if (payload.type === 'done') {
-                        setActiveId(payload.session_id);
-                        setMessages(prev => prev.map(m =>
-                            m.id === placeholderId ? { ...m, streaming: false } : m
-                        ));
-                    }
-
-                    if (payload.type === 'error') {
-                        throw new Error(payload.message);
-                    }
+                if (payload.type === 'chunk') {
+                    setMessages(prev => prev.map(m =>
+                        m.id === placeholderId
+                            ? { ...m, content: m.content + payload.text }
+                            : m
+                    ));
                 }
+                if (payload.type === 'done') {
+                    setActiveId(payload.session_id);
+                    setMessages(prev => prev.map(m =>
+                        m.id === placeholderId ? { ...m, streaming: false } : m
+                    ));
+                }
+                if (payload.type === 'error') throw new Error(payload.message);
             }
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                setMessages(prev => prev.map(m =>
-                    m.id === Date.now() + 1
-                        ? { ...m, content: 'Sorry, something went wrong. Please try again.', streaming: false }
-                        : m
-                ));
-            }
-        } finally {
-            setStreaming(false);
-            abortRef.current = null;
         }
-    }, [input, streaming, activeId]);
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+            setMessages(prev => prev.map(m =>
+                m.id === placeholderId  // ← fixed: was Date.now() + 1
+                    ? { ...m, content: 'Sorry, something went wrong. Please try again.', streaming: false }
+                    : m
+            ));
+        }
+    } finally {
+        setStreaming(false);
+        abortRef.current = null;
+    }
+}, [input, streaming, activeId]);
 
     const handleStop = () => {
         abortRef.current?.abort();

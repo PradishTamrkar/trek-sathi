@@ -6,12 +6,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Wraps Google's text-embedding-004 model (free tier).
- * Outputs 768-dimensional float vectors.
- *
- * Free quota: 1,500 req/min — more than enough for KB indexing and chat.
- */
 final class GeminiEmbeddingProvider
 {
     private const ENDPOINT  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent';
@@ -36,7 +30,7 @@ final class GeminiEmbeddingProvider
         try {
             $response = $this->http->post(self::ENDPOINT . '?key=' . $this->apiKey, [
                 'json' => [
-                    'model'   => 'models/text-embedding-004',
+                    'model'   => 'models/text-embedding-001',
                     'content' => [
                         'parts' => [['text' => $text]],
                     ],
@@ -65,7 +59,7 @@ final class GeminiEmbeddingProvider
         try {
             $response = $this->http->post(self::ENDPOINT . '?key=' . $this->apiKey, [
                 'json' => [
-                    'model'   => 'models/text-embedding-004',
+                    'model'   => 'models/text-embedding-001',
                     'content' => [
                         'parts' => [['text' => $query]],
                     ],
@@ -95,7 +89,7 @@ final class GeminiEmbeddingProvider
         }
 
         $requests = array_map(fn (string $t) => [
-            'model'   => 'models/text-embedding-004',
+            'model'   => 'models/text-embedding-001',
             'content' => ['parts' => [['text' => $this->sanitise($t)]]],
             'taskType' => 'RETRIEVAL_DOCUMENT',
         ], $texts);
